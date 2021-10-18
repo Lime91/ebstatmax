@@ -3,8 +3,8 @@
 
 # simulation of the Diacerin study for the EBStatMax project
 
-# usage (example): ./diacerin_sim_cli.R --help
-#                  Rscript diacerin_sim_cli.R --help
+# usage (on linux, ubuntu):   ./diacerin_sim_cli.R --help
+# usage (general):            Rscript diacerin_sim_cli.R --help
 
 
 suppressPackageStartupMessages(require(optparse))
@@ -34,7 +34,11 @@ option_list <- list(
               default="pois",
               type="character",
               help=paste0("Type of the added effects. ",
-                          "Either 'pois' or 'nbinom'. [default '%default']."))
+                          "Either 'pois' or 'nbinom'. [default '%default'].")),
+  make_option(c("-c", "--compute-alpha"),
+              action="store_true",
+              default=FALSE,
+              help="Set flag to compute alpha error in addition to power.")
 )
 opt <- parse_args(OptionParser(option_list=option_list))
 
@@ -85,14 +89,14 @@ if (!(opt$e %in% VALID_EFFECTS)) {
 }
 
 # status message
-cat("...\n")
+cat("\n")
 cat("Starting simulations with the following parameters:\n")
-cat("data:", opt$d, "\n")
-cat("scenario:", opt$s, "\n")
-cat("effect:", opt$e, "\n")
-cat("#repetitions:", REPETITIONS, "\n")
-cat("alpha-level:", ALPHA_LEVEL, "\n")
-cat("...\n")
+cat("-) data:", opt$d, "\n")
+cat("-) scenario:", opt$s, "\n")
+cat("-) effect:", opt$e, "\n")
+cat("-) #repetitions:", REPETITIONS, "\n")
+cat("-) alpha-level:", ALPHA_LEVEL, "\n")
+cat("\n")
 
 
 # functions to deploy
@@ -133,11 +137,10 @@ add_effect <- function(data,
   target[w3] = target[w3] + effect3
   target[w4] = target[w4] + effect4
   
-  
   # add dependent effects
   if (scenario == 2) {
-    effects5 <- floor(effects3/2)
-    effects6 <- floor(effects4/2)
+    effect5 <- floor(effect3/2)
+    effect6 <- floor(effect4/2)
     w5 <- which(data$Time=="t7" & data$Group=="P")
     w6 <- which(data$Time=="t15" & data$Group=="P")
     target[w5] = target[w5] + effect5
@@ -210,11 +213,13 @@ if (opt$e == 'pois') {
 original_data <- readRDS(opt$data)
 set.seed(RANDOM_SEED)
 
-cat("computing alpha error...\n")
-alpha_errors <- compute_alpha_error(original_data)
-cat("P1: ", alpha_errors[1], ", P2: ", alpha_errors[2], "\n", sep="")
+if (opt$c) {
+  cat("computing alpha error...\n")
+  alpha_errors <- compute_alpha_error(original_data)
+  cat("P1: ", alpha_errors[1], ", P2: ", alpha_errors[2], "\n\n", sep="")
+}
      
-cat("...\ncomputing power...\n")
+cat("computing power...\n")
 power <- list()
 for (p in parameters) {
   results <- compute_power(
