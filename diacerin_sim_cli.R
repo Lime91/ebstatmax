@@ -72,7 +72,7 @@ NBINOM_PARAMETERS <- list(
 
 # other simulation parameters
 RANDOM_SEED <- 1
-REPETITIONS <- 50
+REPETITIONS <- 5000
 ALPHA_LEVEL <- 0.05
 BLOCKLENGTH <- 4
 PERMUTED_NAME <- "permuted_target"
