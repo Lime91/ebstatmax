@@ -8,8 +8,6 @@
 
 
 suppressPackageStartupMessages(require(optparse))
-suppressPackageStartupMessages(require(data.table))
-suppressPackageStartupMessages(require(dplyr))
 suppressPackageStartupMessages(require(nparLD))
 
 
@@ -17,7 +15,7 @@ suppressPackageStartupMessages(require(nparLD))
 option_list <- list(
   make_option(c("-d", "--data"),
               action="store",
-              default="./diacerin.b.p.p.rds",
+              default="./data/diacerin.b.p.p.rds",
               type="character",
               help=paste0("Path to the preprocessed RData file. ",
                           "[default %default].")),

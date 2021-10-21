@@ -1,0 +1,4 @@
+
+# protect data without ignoring the directory itself
+data/*
+!data/.gitkeep
