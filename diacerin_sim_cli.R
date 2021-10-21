@@ -27,6 +27,12 @@ option_list <- list(
                           "#1: add effects at post-treatment only. ",
                           "#2: effects at post-treatment and (less markedly) ",
                           "at follow-up. [default %default].")),
+  make_option(c("-t", "--target-variable"),
+              action="store",
+              default="Blister_count",
+              help=paste0("Name of the explained variable ",
+                          "(to which effects are applied). ",
+                          "[default %default]")),
   make_option(c("-e", "--effect"),
               action="store",
               default="pois",
@@ -38,7 +44,8 @@ option_list <- list(
               default=FALSE,
               help="Set flag to compute alpha error in addition to power.")
 )
-opt <- parse_args(OptionParser(option_list=option_list))
+opt <- parse_args(OptionParser(option_list=option_list),
+                  convert_hyphens_to_underscores=TRUE)
 
 
 # valid input
@@ -65,20 +72,21 @@ NBINOM_PARAMETERS <- list(
 
 # other simulation parameters
 RANDOM_SEED <- 1
-REPETITIONS <- 5000
+REPETITIONS <- 50
 ALPHA_LEVEL <- 0.05
 BLOCKLENGTH <- 4
+PERMUTED_NAME <- "permuted_target"
 
 
 # sanity check
-if (!(opt$s %in% VALID_SCENARIOS)) {
+if (!(opt$scenario %in% VALID_SCENARIOS)) {
   cat(paste0("Error! Scenario must be in (",
              paste(VALID_SCENARIOS, collapse=", "),
              ").\n")
   )
   quit(status=-1)
 }
-if (!(opt$e %in% VALID_EFFECTS)) {
+if (!(opt$effect %in% VALID_EFFECTS)) {
   cat(paste0("Error! Effect must be in ('",
              paste(VALID_EFFECTS, collapse="', '"),
              "').\n")
@@ -89,9 +97,10 @@ if (!(opt$e %in% VALID_EFFECTS)) {
 # status message
 cat("\n")
 cat("Starting simulations with the following parameters:\n")
-cat("-) data:", opt$d, "\n")
-cat("-) scenario:", opt$s, "\n")
-cat("-) effect:", opt$e, "\n")
+cat("-) data:", opt$data, "\n")
+cat("-) scenario:", opt$scenario, "\n")
+cat("-) target variable: ", opt$target_variable, "\n")
+cat("-) effect:", opt$effect, "\n")
 cat("-) #repetitions:", REPETITIONS, "\n")
 cat("-) alpha-level:", ALPHA_LEVEL, "\n")
 cat("\n")
@@ -99,13 +108,12 @@ cat("\n")
 
 # functions to deploy
 permute <- function(data,
-                    target_col="Blister_count",
-                    new_colname="PermuteBlister_count") {
+                    target) {
   n <- length(data$Id)
   blocks <- n/BLOCKLENGTH
-  matr_perm = matrix(data[[target_col]], nrow=BLOCKLENGTH, ncol=blocks)
+  matr_perm = matrix(data[[target]], nrow=BLOCKLENGTH, ncol=blocks)
   matr_perm = matr_perm[,sample(1:blocks)]
-  data[[new_colname]]= c(matr_perm)
+  data[[target]]= c(matr_perm)
   return(data)
 }
 
@@ -113,8 +121,7 @@ add_effect <- function(data,
                        scenario,
                        effect_type,
                        params,
-                       target_col="PermuteBlister_count",
-                       new_colname="SampleBlister_count") {
+                       target) {
   # select data
   w3 <- which(data$Time=="t4" & data$Group=="P")
   w4 <- which(data$Time=="t12" & data$Group=="P")
@@ -131,9 +138,9 @@ add_effect <- function(data,
   }
   
   # add effects
-  target <- data[[target_col]]
-  target[w3] = target[w3] + effect3
-  target[w4] = target[w4] + effect4
+  target_col <- data[[target]]
+  target_col[w3] = target_col[w3] + effect3
+  target_col[w4] = target_col[w4] + effect4
   
   # add dependent effects
   if (scenario == 2) {
@@ -141,11 +148,11 @@ add_effect <- function(data,
     effect6 <- floor(effect4/2)
     w5 <- which(data$Time=="t7" & data$Group=="P")
     w6 <- which(data$Time=="t15" & data$Group=="P")
-    target[w5] = target[w5] + effect5
-    target[w6] = target[w6] + effect6
+    target_col[w5] = target_col[w5] + effect5
+    target_col[w6] = target_col[w6] + effect6
   }
   
-  data[[new_colname]] <- target
+  data[[target]] <- target_col
   return(data)
 }
 
@@ -165,11 +172,11 @@ test_h0 <- function(data,
 }
 
 compute_alpha_error <- function(data,
-                                target="PermuteBlister_count") {
+                                target) {
   results1 <- rep(-1, REPETITIONS) 
   results2 <- rep(-1, REPETITIONS)
   for (i in 1:REPETITIONS) {
-    permuted_data <- permute(data)
+    permuted_data <- permute(data, target)
     results1[i] <- test_h0(permuted_data, 1, target)
     results2[i] <- test_h0(permuted_data, 2, target)
   }
@@ -180,29 +187,28 @@ compute_power <- function(data,
                           scenario,
                           effect_type,
                           params,
-                          target="PermuteBlister_count") {
+                          target) {
   results1 <- rep(-1, REPETITIONS) 
   results2 <- rep(-1, REPETITIONS)
   for (i in 1:REPETITIONS) {
-    permuted_data <- permute(data)
+    permuted_data <- permute(data, target)
     shifted_data <- add_effect(
       permuted_data,
       scenario,
       effect_type,
       params,
-      target,
-      new_colname="SampleBlister_count")
-    results1[i] <- test_h0(shifted_data, 1, "SampleBlister_count")
-    results2[i] <- test_h0(shifted_data, 2, "SampleBlister_count")
+      target)
+    results1[i] <- test_h0(shifted_data, 1, target)
+    results2[i] <- test_h0(shifted_data, 2, target)
   }
   return(c(period1=mean(results1), period2=mean(results2)))
 }
 
 
 # determine parameters to iterate over
-if (opt$e == 'pois') {
+if (opt$effect == 'pois') {
   parameters <- POIS_PARAMETERS
-} else {
+} else if (opt$effect == 'nbinom') {
   parameters <- NBINOM_PARAMETERS
 }
 
@@ -211,9 +217,9 @@ if (opt$e == 'pois') {
 original_data <- readRDS(opt$data)
 set.seed(RANDOM_SEED)
 
-if (opt$c) {
+if (opt$compute_alpha) {
   cat("computing alpha error...\n")
-  alpha_errors <- compute_alpha_error(original_data)
+  alpha_errors <- compute_alpha_error(original_data, opt$target_variable)
   cat("P1: ", alpha_errors[1], ", P2: ", alpha_errors[2], "\n\n", sep="")
 }
      
@@ -222,9 +228,10 @@ power <- list()
 for (p in parameters) {
   results <- compute_power(
     original_data,
-    opt$s,
-    opt$e,
-    p)
+    opt$scenario,
+    opt$effect,
+    p,
+    opt$target_variable)
   key <- paste(names(p), p, sep="=", collapse=", ")
   power[[key]] = results
   cat(key, "\n")
