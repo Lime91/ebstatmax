@@ -79,20 +79,12 @@ PERMUTED_NAME <- "permuted_target"
 
 
 # sanity check
-if (!(opt$scenario %in% VALID_SCENARIOS)) {
-  cat(paste0("Error! Scenario must be in (",
-             paste(VALID_SCENARIOS, collapse=", "),
-             ").\n")
-  )
-  quit(status=-1)
-}
-if (!(opt$effect %in% VALID_EFFECTS)) {
-  cat(paste0("Error! Effect must be in ('",
-             paste(VALID_EFFECTS, collapse="', '"),
-             "').\n")
-  )
-  quit(status=-1)
-}
+if (!(opt$scenario %in% VALID_SCENARIOS))
+  stop("Scenario must be in (", paste(VALID_SCENARIOS, collapse=", "), ")")
+
+if (!(opt$effect %in% VALID_EFFECTS))
+  stop("Effect must be in ('", paste(VALID_EFFECTS, collapse="', '"), "')")
+
 
 # status message
 cat("\n")
@@ -117,42 +109,36 @@ permute <- function(data,
   return(data)
 }
 
+generate_effect <- function(effect_type,
+                            n,
+                            params) {
+  if (effect_type == "nbinom") {
+    effect <- rnbinom(n, size=params["r"], prob=params["p"])
+  } else if (effect_type == "pois") {
+    effect <- rpois(n, lambda=params["lambda"])
+  } else {
+    stop("invalid effect type")
+  }
+  return(effect)
+}
+
 add_effect <- function(data,
                        scenario,
                        effect_type,
                        params,
                        target) {
-  # select data
-  w3 <- which(data$Time=="t4" & data$Group=="P")
-  w4 <- which(data$Time=="t12" & data$Group=="P")
-  nw3 <- length(w3)
-  nw4 <- length(w4)
+  # select data & add effect
+  w <- which((data$Time == "t4" | data$Time == "t12") & data$Group == "P")
+  n <- length(w)
+  effect <- generate_effect(effect_type, n, params)
+  data[[target]][w] = data[[target]][w] + effect
   
-  # generate effects
-  if (effect_type == "nbinom") {
-    effect3 <- rnbinom(nw3, size=params["r"], prob=params["p"])
-    effect4 <- rnbinom(nw4, size=params["r"], prob=params["p"])
-  } else {
-    effect3 <- rpois(nw3, lambda=params["lambda"])
-    effect4 <- rpois(nw4, lambda=params["lambda"])
-  }
-  
-  # add effects
-  target_col <- data[[target]]
-  target_col[w3] = target_col[w3] + effect3
-  target_col[w4] = target_col[w4] + effect4
-  
-  # add dependent effects
+  # add dependent effect
   if (scenario == 2) {
-    effect5 <- floor(effect3/2)
-    effect6 <- floor(effect4/2)
-    w5 <- which(data$Time=="t7" & data$Group=="P")
-    w6 <- which(data$Time=="t15" & data$Group=="P")
-    target_col[w5] = target_col[w5] + effect5
-    target_col[w6] = target_col[w6] + effect6
+    dependent_effect <- floor(effect/2)
+    w <- which((data$Time == "t7" | data$Time== "t15") & data$Group == "P")
+    data[[target]][w] = data[[target]][w] + dependent_effect
   }
-  
-  data[[target]] <- target_col
   return(data)
 }
 
