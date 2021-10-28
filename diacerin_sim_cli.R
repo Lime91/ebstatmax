@@ -8,6 +8,7 @@
 
 
 suppressPackageStartupMessages(require(optparse))
+suppressPackageStartupMessages(require(data.table))
 suppressPackageStartupMessages(require(nparLD))
 
 
@@ -104,9 +105,8 @@ permute <- function(data,
   n <- length(data$Id)
   blocks <- n/BLOCKLENGTH
   matr_perm = matrix(data[[target]], nrow=BLOCKLENGTH, ncol=blocks)
-  matr_perm = matr_perm[,sample(1:blocks)]
-  data[[target]]= c(matr_perm)
-  return(data)
+  matr_perm = matr_perm[, sample(1:blocks)]
+  data[, c(target) := c(matr_perm)]
 }
 
 generate_effect <- function(effect_type,
@@ -122,24 +122,37 @@ generate_effect <- function(effect_type,
   return(effect)
 }
 
+add_main_effect <- function(data,
+                            effect_type,
+                            params,
+                            target) {
+  w <- which((data$Time == "t4" | data$Time == "t12") & data$Group == "P")
+  n <- length(w)
+  effect <- generate_effect(effect_type, n, params)
+  shifted_values <- data[[target]][w] + effect
+  data[w, c(target) := shifted_values]
+  return(effect)
+}
+
+add_dependent_effect <- function(data,
+                                 effect,
+                                 scenario,
+                                 target) {
+  if (scenario == 2) {
+    dependent_effect <- floor(effect/2)
+    w <- which((data$Time == "t7" | data$Time== "t15") & data$Group == "P")
+    shifted_values <- data[[target]][w] + dependent_effect
+    data[w, c(target) := shifted_values]
+  }
+}
+
 add_effect <- function(data,
                        scenario,
                        effect_type,
                        params,
                        target) {
-  # select data & add effect
-  w <- which((data$Time == "t4" | data$Time == "t12") & data$Group == "P")
-  n <- length(w)
-  effect <- generate_effect(effect_type, n, params)
-  data[[target]][w] = data[[target]][w] + effect
-  
-  # add dependent effect
-  if (scenario == 2) {
-    dependent_effect <- floor(effect/2)
-    w <- which((data$Time == "t7" | data$Time== "t15") & data$Group == "P")
-    data[[target]][w] = data[[target]][w] + dependent_effect
-  }
-  return(data)
+  effect <- add_main_effect(data, effect_type, params, target)
+  add_dependent_effect(data, effect, scenario, target)
 }
 
 test_h0 <- function(data,
@@ -162,9 +175,11 @@ compute_alpha_error <- function(data,
   results1 <- rep(-1, REPETITIONS) 
   results2 <- rep(-1, REPETITIONS)
   for (i in 1:REPETITIONS) {
-    permuted_data <- permute(data, target)
-    results1[i] <- test_h0(permuted_data, 1, target)
-    results2[i] <- test_h0(permuted_data, 2, target)
+    original <- copy(data[, ..target])  # save from passing by reference
+    permute(data, target)
+    results1[i] <- test_h0(data, 1, target)
+    results2[i] <- test_h0(data, 2, target)
+    data[, c(target) := original[[target]]]  # restore original
   }
   return(c(period1=mean(results1), period2=mean(results2)))
 }
@@ -177,15 +192,12 @@ compute_power <- function(data,
   results1 <- rep(-1, REPETITIONS) 
   results2 <- rep(-1, REPETITIONS)
   for (i in 1:REPETITIONS) {
-    permuted_data <- permute(data, target)
-    shifted_data <- add_effect(
-      permuted_data,
-      scenario,
-      effect_type,
-      params,
-      target)
-    results1[i] <- test_h0(shifted_data, 1, target)
-    results2[i] <- test_h0(shifted_data, 2, target)
+    original <- copy(data[, ..target])  # save from passing by reference
+    permute(data, target)
+    add_effect(data, scenario, effect_type, params, target)
+    results1[i] <- test_h0(data, 1, target)
+    results2[i] <- test_h0(data, 2, target)
+    data[, c(target) := original[[target]]]  # restore original
   }
   return(c(period1=mean(results1), period2=mean(results2)))
 }
