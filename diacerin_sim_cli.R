@@ -43,7 +43,13 @@ option_list <- list(
   make_option(c("-c", "--compute-alpha"),
               action="store_true",
               default=FALSE,
-              help="Set flag to compute alpha error in addition to power.")
+              help="Set flag to compute alpha error in addition to power."),
+  make_option(c("-b", "--binarize"),
+              action="store_true",
+              default=FALSE,
+              help=paste0("Set flag to binarize the target variable before ",
+                          "testing the H0. The relative binarization ",
+                          "threshold is set in the config."))
 )
 opt <- parse_args(OptionParser(option_list=option_list),
                   convert_hyphens_to_underscores=TRUE)
@@ -71,12 +77,18 @@ NBINOM_PARAMETERS <- list(
   c("r"=18, "p"=0.9)
 )
 
+# maximum value per target (target will be truncated after the effect was added)
+MAX_VALUE <- c(
+  "Pruritus"=10,
+  "Pain"=10
+)
+
 # other simulation parameters
 RANDOM_SEED <- 1
-REPETITIONS <- 5000
+REPETITIONS <- 500
 ALPHA_LEVEL <- 0.05
 BLOCKLENGTH <- 4
-PERMUTED_NAME <- "permuted_target"
+BINARY_THRESHOLD <- 0.6
 
 
 # sanity check
@@ -92,8 +104,9 @@ cat("\n")
 cat("Starting simulations with the following parameters:\n")
 cat("-) data:", opt$data, "\n")
 cat("-) scenario:", opt$scenario, "\n")
-cat("-) target variable: ", opt$target_variable, "\n")
+cat("-) target variable:", opt$target_variable, "\n")
 cat("-) effect:", opt$effect, "\n")
+cat("-) binarization:", opt$binarize, ",threshold =", BINARY_THRESHOLD, "\n")
 cat("-) #repetitions:", REPETITIONS, "\n")
 cat("-) alpha-level:", ALPHA_LEVEL, "\n")
 cat("\n")
@@ -146,13 +159,41 @@ add_dependent_effect <- function(data,
   }
 }
 
+truncate_target <- function(data,
+                            target) {
+  if (target %in% names(MAX_VALUE)) {
+    m <- MAX_VALUE[target] 
+    v <- data[[target]]
+    data[, c(target) := ifelse(v <= m, v, m)]
+  }
+}
+
+dichotomize_target <- function(data,
+                               target,
+                               dichotomize,
+                               blocklength,
+                               threshold) {
+  if (dichotomize) {
+    n <- length(data$Id)
+    block_begins <- which(1:n %% blocklength == 1)
+    for (b in block_begins) {  # 1, blocklength + 1, 2*blocklength + 1, ...
+      range <- b:(b + blocklength - 1)
+      block <- data[range, ..target][[target]]
+      relative <- block/block[1]
+      dichotomized <- ifelse(relative < threshold, 1, 0)  # decrease is desired
+      data[range, c(target) := dichotomized]
+    }
+  }
+}
+
 add_effect <- function(data,
-                       scenario,
-                       effect_type,
-                       params,
-                       target) {
-  effect <- add_main_effect(data, effect_type, params, target)
-  add_dependent_effect(data, effect, scenario, target)
+                       options,
+                       params) {
+  effect_vals <- add_main_effect(data, options$effect, params, options$target)
+  add_dependent_effect(data, effect_vals, options$scenario, options$target)
+  truncate_target(data, options$target)
+  dichotomize_target(data, options$target, options$binarize,
+                     BLOCKLENGTH, BINARY_THRESHOLD)
 }
 
 test_h0 <- function(data,
@@ -171,7 +212,8 @@ test_h0 <- function(data,
 }
 
 compute_alpha_error <- function(data,
-                                target) {
+                                options) {
+  target <- options$target
   results1 <- rep(-1, REPETITIONS) 
   results2 <- rep(-1, REPETITIONS)
   for (i in 1:REPETITIONS) {
@@ -185,16 +227,15 @@ compute_alpha_error <- function(data,
 }
 
 compute_power <- function(data,
-                          scenario,
-                          effect_type,
-                          params,
-                          target) {
+                          options,
+                          params) {
+  target <- options$target
   results1 <- rep(-1, REPETITIONS) 
   results2 <- rep(-1, REPETITIONS)
   for (i in 1:REPETITIONS) {
     original <- copy(data[, ..target])  # save from passing by reference
     permute(data, target)
-    add_effect(data, scenario, effect_type, params, target)
+    add_effect(data, options, params)
     results1[i] <- test_h0(data, 1, target)
     results2[i] <- test_h0(data, 2, target)
     data[, c(target) := original[[target]]]  # restore original
@@ -212,24 +253,19 @@ if (opt$effect == 'pois') {
 
 
 # program start
-original_data <- readRDS(opt$data)
+data <- readRDS(opt$data)
 set.seed(RANDOM_SEED)
 
 if (opt$compute_alpha) {
   cat("computing alpha error...\n")
-  alpha_errors <- compute_alpha_error(original_data, opt$target_variable)
+  alpha_errors <- compute_alpha_error(data, opt)
   cat("P1: ", alpha_errors[1], ", P2: ", alpha_errors[2], "\n\n", sep="")
 }
      
 cat("computing power...\n")
 power <- list()
 for (p in parameters) {
-  results <- compute_power(
-    original_data,
-    opt$scenario,
-    opt$effect,
-    p,
-    opt$target_variable)
+  results <- compute_power(data, opt, p)
   key <- paste(names(p), p, sep="=", collapse=", ")
   power[[key]] = results
   cat(key, "\n")
