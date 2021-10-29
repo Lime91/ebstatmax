@@ -38,8 +38,9 @@ option_list <- list(
               action="store",
               default="pois",
               type="character",
-              help=paste0("Type of the added effects. ",
-                          "Either 'pois' or 'nbinom'. [default '%default'].")),
+              help=paste0("Type of the added effects. One of ",
+                          "('pois', 'nbinom', 'lnorm', 'norm'). ",
+                          "[default '%default'].")),
   make_option(c("-c", "--compute-alpha"),
               action="store_true",
               default=FALSE,
@@ -57,7 +58,7 @@ opt <- parse_args(OptionParser(option_list=option_list),
 
 # valid input
 VALID_SCENARIOS <- c(1, 2)
-VALID_EFFECTS <- c("pois", "nbinom")
+VALID_EFFECTS <- c("pois", "nbinom", "lnorm", "norm")
 
 # effect parameters
 POIS_PARAMETERS <- list(
@@ -66,15 +67,31 @@ POIS_PARAMETERS <- list(
   c("lambda"=4)
 )
 NBINOM_PARAMETERS <- list(
+  c("r"=2, "p"=0.5),
+  c("r"=2/9, "p"=0.1),
+  c("r"=18, "p"=0.9),
   c("r"=3, "p"=0.5),
   c("r"=1/3, "p"=0.1),
   c("r"=27, "p"=0.9),
   c("r"=4, "p"=0.5),
   c("r"=4/9, "p"=0.1),
-  c("r"=36, "p"=0.9),
-  c("r"=2, "p"=0.5),
-  c("r"=2/9, "p"=0.1),
-  c("r"=18, "p"=0.9)
+  c("r"=36, "p"=0.9)
+)
+LNORM_PARAMETERS <- list(
+  c("meanlog"=0.2, "sdlog"=1),
+  c("meanlog"=0.6, "sdlog"=1),
+  c("meanlog"=0.9, "sdlog"=1)
+)
+NORM_PARAMETERS <- list(
+  c("mean"=2, "sd"=1),
+  c("mean"=3, "sd"=1),
+  c("mean"=4, "sd"=1)
+)
+PARAMETERS <- list(
+  "pois"=POIS_PARAMETERS,
+  "nbinom"=NBINOM_PARAMETERS,
+  "lnorm"=LNORM_PARAMETERS,
+  "norm"=NORM_PARAMETERS
 )
 
 # maximum value per target (target will be truncated after the effect was added)
@@ -85,7 +102,7 @@ MAX_VALUE <- c(
 
 # other simulation parameters
 RANDOM_SEED <- 1
-REPETITIONS <- 500
+REPETITIONS <- 50
 ALPHA_LEVEL <- 0.05
 BLOCKLENGTH <- 4
 BINARY_THRESHOLD <- 0.6
@@ -129,6 +146,10 @@ generate_effect <- function(effect_type,
     effect <- rnbinom(n, size=params["r"], prob=params["p"])
   } else if (effect_type == "pois") {
     effect <- rpois(n, lambda=params["lambda"])
+  } else if (effect_type == "lnorm") {
+    effect <- rlnorm(n, meanlog=params["meanlog"], sdlog=params["sdlog"])
+  } else if (effect_type == "norm") {
+    effect <- rnorm(n, mean=params["mean"], sd=params["sd"])
   } else {
     stop("invalid effect type")
   }
@@ -245,12 +266,7 @@ compute_power <- function(data,
 
 
 # determine parameters to iterate over
-if (opt$effect == 'pois') {
-  parameters <- POIS_PARAMETERS
-} else if (opt$effect == 'nbinom') {
-  parameters <- NBINOM_PARAMETERS
-}
-
+parameters <- PARAMETERS[[opt$effect]]
 
 # program start
 data <- readRDS(opt$data)
