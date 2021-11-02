@@ -1,5 +1,9 @@
 # functions to be deployed in diacerin_sim_cli.R
 
+# attach required libraries
+suppressPackageStartupMessages(require(data.table))
+suppressPackageStartupMessages(require(nparLD))
+
 
 #' Permute Target Variable Values
 #'
@@ -92,7 +96,7 @@ add_main_effect <- function(data,
   w <- which(
     (data[[time_variable]] %in% times) & (data[[group_variable]] == group))
   n <- length(w)
-  effect <- generate_effect(options$effect_type, n, params)
+  effect <- generate_effect(options$effect, n, params)
   shifted_values <- data[[options$target]][w] + effect
   data[w, c(options$target) := shifted_values]
   return(effect)
@@ -273,33 +277,85 @@ test_h0 <- function(data,
   return(p_value < alpha)
 }
 
+
+#' Simulation-based Computation of the Type-I Error
+#' 
+#' For a given number of repetitions, permute the target variable to establish 
+#' a situation in which H0 holds. Perform hypotheses tests for both periods of 
+#' the trial separately. Store all test results and return the average for both 
+#' periods.
+#' 
+#' options$target contains the name of the target variable.
+#' config$repetitions is the number of repetitions to perform (i.e., the 
+#' number of tests performed for each period)
+#' config$blocklength is the number of measurements in a block that refer to 
+#' one subject.
+#' config$alpha is the expected type I error rate.
+#'
+#' @param data data.table with the full study dataset
+#' @param options list with user-defined command line arguments
+#' @param config list with further arguments
+#'
+#' @return vector with average type-I errors for both periods
 compute_alpha_error <- function(data,
-                                options) {
+                                options,
+                                config) {
   target <- options$target
-  results1 <- rep(-1, REPETITIONS) 
-  results2 <- rep(-1, REPETITIONS)
-  for (i in 1:REPETITIONS) {
+  r <- config$repetitions
+  results1 <- rep(-1, r) 
+  results2 <- rep(-1, r)
+  for (i in 1:r) {
     original <- copy(data[, ..target])  # save from passing by reference
-    permute(data, target, BLOCKLENGTH)
-    results1[i] <- test_h0(data, 1, target, ALPHA_LEVEL)
-    results2[i] <- test_h0(data, 2, target, ALPHA_LEVEL)
+    permute(data, target, config$blocklength)
+    results1[i] <- test_h0(data, 1, target, config$alpha)
+    results2[i] <- test_h0(data, 2, target, config$alpha)
     data[, c(target) := original[[target]]]  # restore original
   }
   return(c(period1=mean(results1), period2=mean(results2)))
 }
 
+
+#' Simulation-based Computation of Power
+#' 
+#' For a given number of repetitions, firstly permute the target variable and 
+#' secondly, add effects to selected values such that a a situation in which 
+#' H1 holds is established. Perform hypotheses tests for both periods of the 
+#' trial separately. Store all test results and return the average for both 
+#' periods.
+#' 
+#' The additive random effect is specified by a combination of user input (the 
+#' attribute options$effect) and the params argument.
+#' 
+#' options$target contains the name of the target variable.
+#' config$repetitions is the number of repetitions to perform (i.e., the 
+#' number of tests performed for each period)
+#' config$blocklength is the number of measurements in a block that refer to 
+#' one subject.
+#' config$alpha is the expected type I error rate.
+#' 
+#' Moreover, options and config must contain all attributes required by 
+#' add_effect.
+#'
+#' @param data data.table with the full study dataset
+#' @param params named vector that maps parameter names to values
+#' @param options list with user-defined command line arguments
+#' @param config list with further arguments
+#'
+#' @return vector with average power values for both periods
 compute_power <- function(data,
+                          params,
                           options,
-                          params) {
+                          config) {
   target <- options$target
-  results1 <- rep(-1, REPETITIONS) 
-  results2 <- rep(-1, REPETITIONS)
-  for (i in 1:REPETITIONS) {
+  r <- config$repetitions
+  results1 <- rep(-1, r) 
+  results2 <- rep(-1, r)
+  for (i in 1:r) {
     original <- copy(data[, ..target])  # save from passing by reference
-    permute(data, target, BLOCKLENGTH)
-    add_effect(data, params, options, CONFIG)
-    results1[i] <- test_h0(data, 1, target, ALPHA_LEVEL)
-    results2[i] <- test_h0(data, 2, target, ALPHA_LEVEL)
+    permute(data, target, config$blocklength)
+    add_effect(data, params, options, config)
+    results1[i] <- test_h0(data, 1, target, config$alpha)
+    results2[i] <- test_h0(data, 2, target, config$alpha)
     data[, c(target) := original[[target]]]  # restore original
   }
   return(c(period1=mean(results1), period2=mean(results2)))
