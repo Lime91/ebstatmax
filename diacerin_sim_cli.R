@@ -28,7 +28,7 @@ option_list <- list(
                           "#1: add effects at post-treatment only. ",
                           "#2: effects at post-treatment and (less markedly) ",
                           "at follow-up. [default %default].")),
-  make_option(c("-t", "--target-variable"),
+  make_option(c("-t", "--target"),
               action="store",
               default="Blister_count",
               help=paste0("Name of the explained variable ",
@@ -121,9 +121,9 @@ cat("\n")
 cat("Starting simulations with the following parameters:\n")
 cat("-) data:", opt$data, "\n")
 cat("-) scenario:", opt$scenario, "\n")
-cat("-) target variable:", opt$target_variable, "\n")
+cat("-) target variable:", opt$target, "\n")
 cat("-) effect:", opt$effect, "\n")
-cat("-) binarization:", opt$binarize, ",threshold =", BINARY_THRESHOLD, "\n")
+cat("-) binarization:", opt$binarize, ", threshold =", BINARY_THRESHOLD, "\n")
 cat("-) #repetitions:", REPETITIONS, "\n")
 cat("-) alpha-level:", ALPHA_LEVEL, "\n")
 cat("\n")
@@ -153,7 +153,7 @@ generate_effect <- function(effect_type,
   } else {
     stop("invalid effect type")
   }
-  return(effect)
+  return(round(effect))
 }
 
 add_main_effect <- function(data,
@@ -189,20 +189,20 @@ truncate_target <- function(data,
   }
 }
 
-dichotomize_target <- function(data,
-                               target,
-                               dichotomize,
-                               blocklength,
-                               threshold) {
-  if (dichotomize) {
+binarize_target <- function(binarize,
+                            data,
+                            target,
+                            blocklength,
+                            threshold) {
+  if (binarize) {
     n <- length(data$Id)
     block_begins <- which(1:n %% blocklength == 1)
     for (b in block_begins) {  # 1, blocklength + 1, 2*blocklength + 1, ...
       range <- b:(b + blocklength - 1)
       block <- data[range, ..target][[target]]
       relative <- block/block[1]
-      dichotomized <- ifelse(relative < threshold, 1, 0)  # decrease is desired
-      data[range, c(target) := dichotomized]
+      binarized <- ifelse(relative < threshold, 1, 0)  # decrease is desired
+      data[range, c(target) := binarized]
     }
   }
 }
@@ -213,8 +213,8 @@ add_effect <- function(data,
   effect_vals <- add_main_effect(data, options$effect, params, options$target)
   add_dependent_effect(data, effect_vals, options$scenario, options$target)
   truncate_target(data, options$target)
-  dichotomize_target(data, options$target, options$binarize,
-                     BLOCKLENGTH, BINARY_THRESHOLD)
+  binarize_target(options$binarize, data, options$target,
+                  BLOCKLENGTH, BINARY_THRESHOLD)
 }
 
 test_h0 <- function(data,
