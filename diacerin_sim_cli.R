@@ -95,9 +95,30 @@ PARAMETERS <- list(
 )
 
 # maximum value per target (target will be truncated after the effect was added)
-MAX_VALUE <- c(
+MAX_VALUES <- c(
   "Pruritus"=10,
   "Pain"=10
+)
+
+# effect localization
+MAIN_EFFECT_TIME <- c("t4", "t12")
+DEPENDENT_EFFECT_TIME <- c("t7", "t15")
+EFFECT_GROUP <- "P"
+
+# variable names in dataset
+TIME_VARIABLE <- "Time"
+GROUP_VARIABLE <- "Group"
+
+# combine parameters in global config object
+CONFIG <- list(
+  time_variable         = TIME_VARIABLE,
+  group_variable        = GROUP_VARIABLE,
+  main_effect_time      = MAIN_EFFECT_TIME,
+  dependent_effect_time = DEPENDENT_EFFECT_TIME,
+  effect_group          = EFFECT_GROUP,
+  max_values            = MAX_VALUES,
+  blocklength           = BLOCKLENGTH,
+  binary_threshold      = BINARY_THRESHOLD
 )
 
 # other simulation parameters
@@ -106,7 +127,6 @@ REPETITIONS <- 50
 ALPHA_LEVEL <- 0.05
 BLOCKLENGTH <- 4
 BINARY_THRESHOLD <- 0.6
-
 
 # sanity check
 if (!(opt$scenario %in% VALID_SCENARIOS))
