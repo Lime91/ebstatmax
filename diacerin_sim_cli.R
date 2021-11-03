@@ -83,8 +83,14 @@ cat("\n")
 parameters <- CONFIG$parameters[[opt$effect]]
 
 # program start
-data <- readRDS(opt$data)
 set.seed(CONFIG$seed)
+data <- readRDS(opt$data)
+reduced_data <- exclude_na_blocks(data, opt$target, CONFIG$blocklength)
+diff <- nrow(data) - nrow(reduced_data)
+if (diff != 0) {
+  cat(diff, "rows have been removed from the dataset due to NA-values.\n\n")
+  data <- reduced_data
+}
 
 if (opt$compute_alpha) {
   cat("computing alpha error...\n")

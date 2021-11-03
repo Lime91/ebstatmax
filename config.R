@@ -55,7 +55,7 @@ GROUP_VARIABLE <- "Group"
 
 # other simulation parameters
 SEED <- 1
-REPETITIONS <- 50
+REPETITIONS <- 5000
 ALPHA <- 0.05
 BLOCKLENGTH <- 4
 BINARY_THRESHOLD <- 0.6

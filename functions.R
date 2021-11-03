@@ -5,6 +5,32 @@ suppressPackageStartupMessages(require(data.table))
 suppressPackageStartupMessages(require(nparLD))
 
 
+#' Remove Blocks Containing NA in Target
+#' 
+#' If NAs occur in the target variable, the respective blocks will be removed 
+#' from the dataset (i.e., the NA-rows as well as their surrounding rows will 
+#' be removed)
+#'
+#' @param data data.table with the full study dataset
+#' @param target name of the target variable column in data
+#' @param blocklength number of measurements in a block
+#'
+#' @return the input data reduced by excluded NA-blocks
+exclude_na_blocks <- function(data,
+                              target,
+                              blocklength) {
+  w <- which(is.na(data[[target]]))
+  modulo <- w %% blocklength
+  division <- w %/% blocklength
+  block_numbers <- unique(ifelse(modulo == 0, division, division + 1))
+  select <- integer()
+  for (k in block_numbers) {
+    select <- c(select, ((k - 1)*blocklength + 1):(k*blocklength))
+  }
+  return(data[-select])
+}
+
+
 #' Permute Target Variable Values
 #'
 #' Permutation distributes the target variable randomly across study subjects. 
