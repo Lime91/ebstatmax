@@ -20,6 +20,9 @@ exclude_na_blocks <- function(data,
                               target,
                               blocklength) {
   w <- which(is.na(data[[target]]))
+  if (length(w) == 0) {  # nothing to exclude
+    return(data)
+  }
   modulo <- w %% blocklength
   division <- w %/% blocklength
   block_numbers <- unique(ifelse(modulo == 0, division, division + 1))
