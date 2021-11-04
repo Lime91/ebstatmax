@@ -62,7 +62,7 @@ permute <- function(data,
 #' 
 #' The returned vector is rounded to integers.
 #'
-#' @param effect_type name of the effect distribtion
+#' @param effect_type name of the effect distribution
 #' @param n size of the returned random sample
 #' @param params named vector that maps parameter names to parameter values
 #'
@@ -77,7 +77,8 @@ generate_effect <- function(effect_type,
   } else if (effect_type == "lnorm") {
     effect <- rlnorm(n, meanlog=params["meanlog"], sdlog=params["sdlog"])
   } else if (effect_type == "norm") {
-    effect <- rnorm(n, mean=params["mean"], sd=params["sd"])
+    # avoid negative values
+    effect <- max(rnorm(n, mean=params["mean"], sd=params["sd"]), 0)
   } else {
     stop("invalid effect type")
   }
