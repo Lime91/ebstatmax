@@ -299,11 +299,11 @@ test_h0 <- function(data,
                     target,
                     alpha) {
   if (period == 1) {
-    data <- subset(data, TimeNum <= 4)
+    data <- subset(data, Time <= 7)
   } else {
-    data <- subset(data, TimeNum > 4)
+    data <- subset(data, Time > 7)
   }
-  form <- as.formula(paste(target, "GroupNum * TimeNum", sep=" ~ "))
+  form <- as.formula(paste(target, "Group * Time", sep=" ~ "))
   capture.output(
     p_value <- nparLD(form, data, subject="Id")$ANOVA.test[3,3]
   )
@@ -396,4 +396,30 @@ compute_power <- function(data,
     data[, c(target) := original[[target]]]  # restore original
   }
   return(c(period1=mean(results1), period2=mean(results2)))
+}
+
+
+#' Read in Diacerin Study Dataset
+#'
+#' The dataset is read in as data.table. This is important as many of the other 
+#' functions require this data type. The dataset is supposed to consist of 
+#' tab-separated values (tsv). Its rows will be reordered according to 
+#' config$subject_variable and config$time_variable. Moreover, the time 
+#' variable will be casted to numeric to establish an order w.r.t. time.
+#' 
+#' @param filename path to the tab-separated dataset file
+#' @param config list with further arguments
+#'
+#' @return the preprocessed dataset as data.table
+read_data <- function(filename,
+                      config) {
+  data = read.delim2(filename, na.strings=c("n/a"))
+  # create numeric time variable to establish time order
+  time <- config$time_variable
+  data[[time]] <- as.numeric(gsub("\\D", "", data[[time]]))
+  # reorder rows to establish subject-time blocks
+  subject <- config$subject_variable
+  o <- order(data[[subject]], data[[time]])
+  data <- data[o, ]
+  return(as.data.table(data))
 }

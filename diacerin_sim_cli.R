@@ -14,15 +14,15 @@ source("./config.R")  # import a global CONFIG object
 
 # command line option parsing
 option_list <- list(
-  make_option(c("-d", "--data"),
+  make_option(c("-d", "--dataset"),
               action="store",
-              default="./data/diacerin.b.p.p.rds",
+              default="./data/Diacerein_study-setup.txt",
               type="character",
-              help=paste0("Path to the preprocessed RData file. ",
+              help=paste0("Path to the Diacerin-study dataset file. ",
                           "[default %default].")),
   make_option(c("-s", "--scenario"),
               action="store",
-              default=1,
+              default=CONFIG$valid_scenarios[1],
               type="integer",
               help=paste0("The required simulation scenario. ",
                           "#1: add effects at post-treatment only. ",
@@ -36,11 +36,11 @@ option_list <- list(
                           "[default %default]")),
   make_option(c("-e", "--effect"),
               action="store",
-              default="pois",
+              default=CONFIG$valid_effects[1],
               type="character",
-              help=paste0("Type of the added effects. One of ('",
-                          paste(CONFIG$valid_effects, collapse="', '"),
-                          "') [default '%default'].")),
+              help=paste0("Type of the added effects. One of (",
+                          paste(CONFIG$valid_effects, collapse=", "),
+                          ") [default %default].")),
   make_option(c("-c", "--compute-alpha"),
               action="store_true",
               default=FALSE,
@@ -67,7 +67,7 @@ if (!(opt$effect %in% CONFIG$valid_effects))
 # status message
 cat("\n")
 cat("Starting simulations with the following parameters:\n")
-cat("-) data:", opt$data, "\n")
+cat("-) dataset:", opt$dataset, "\n")
 cat("-) scenario:", opt$scenario, "\n")
 cat("-) target variable:", opt$target, "\n")
 cat("-) effect:", opt$effect, "\n")
@@ -83,7 +83,7 @@ parameters <- CONFIG$parameters[[opt$effect]]
 
 # program start
 set.seed(CONFIG$seed)
-data <- readRDS(opt$data)
+data <- read_data(opt$dataset, CONFIG)
 
 # exclude NAs
 reduced_data <- exclude_na_blocks(data, opt$target, CONFIG$blocklength)

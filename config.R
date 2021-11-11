@@ -52,13 +52,14 @@ MAX_VALUES <- c(
 )
 
 # effect localization
-MAIN_EFFECT_TIME <- c("t4", "t12")
-DEPENDENT_EFFECT_TIME <- c("t7", "t15")
+MAIN_EFFECT_TIME <- c(4, 12)
+DEPENDENT_EFFECT_TIME <- c(7, 15)
 EFFECT_GROUP <- "P"
 
 # variable names in dataset
 TIME_VARIABLE <- "Time"
 GROUP_VARIABLE <- "Group"
+SUBJECT_VARIABLE <- "Id"
 
 # combine parameters in global config object
 CONFIG <- list(
@@ -67,6 +68,7 @@ CONFIG <- list(
   parameters            = PARAMETERS,
   time_variable         = TIME_VARIABLE,
   group_variable        = GROUP_VARIABLE,
+  subject_variable      = SUBJECT_VARIABLE,
   main_effect_time      = MAIN_EFFECT_TIME,
   dependent_effect_time = DEPENDENT_EFFECT_TIME,
   effect_group          = EFFECT_GROUP,
