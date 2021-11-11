@@ -257,7 +257,7 @@ binarize_target <- function(binarize,
 #' options$scenario determines the simulation scenario. If 
 #' options$scenario == 1, only independent main effects are added. 
 #' options$scenario == 2 means that, in addition to the main effects, also 
-#' dependet effects are added.
+#' dependent effects are added.
 #' 
 #' options$target contains the name of the target variable in data.
 #' options$binarize determines if the target should be binarized (cf. 
@@ -307,6 +307,9 @@ test_h0 <- function(data,
   capture.output(
     p_value <- nparLD(form, data, subject="Id")$ANOVA.test[3,3]
   )
+  if (is.na(p_value < alpha)) {
+    browser()
+  }
   return(p_value < alpha)
 }
 
@@ -334,6 +337,9 @@ compute_alpha_error <- function(data,
                                 options,
                                 config) {
   target <- options$target
+  non_binarized <- copy(data[, ..target])  # save from binarization
+  binarize_target(options$binarize, data, options$target,
+                  config$blocklength, config$binary_threshold)
   r <- config$repetitions
   results1 <- rep(-1, r) 
   results2 <- rep(-1, r)
@@ -344,6 +350,7 @@ compute_alpha_error <- function(data,
     results2[i] <- test_h0(data, 2, target, config$alpha)
     data[, c(target) := original[[target]]]  # restore original
   }
+  data[, c(target) := non_binarized[[target]]]  # restore after binarization
   return(c(period1=mean(results1), period2=mean(results2)))
 }
 

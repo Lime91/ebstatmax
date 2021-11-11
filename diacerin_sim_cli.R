@@ -64,7 +64,6 @@ if (!(opt$effect %in% CONFIG$valid_effects))
   stop("Effect must be in ('",
        paste(CONFIG$valid_effects, collapse="', '"), "')")
 
-
 # status message
 cat("\n")
 cat("Starting simulations with the following parameters:\n")
@@ -85,6 +84,8 @@ parameters <- CONFIG$parameters[[opt$effect]]
 # program start
 set.seed(CONFIG$seed)
 data <- readRDS(opt$data)
+
+# exclude NAs
 reduced_data <- exclude_na_blocks(data, opt$target, CONFIG$blocklength)
 diff <- nrow(data) - nrow(reduced_data)
 if (diff != 0) {

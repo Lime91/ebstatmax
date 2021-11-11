@@ -1,5 +1,12 @@
 # compilation of a global CONFIG object that is used in diacerin_sim_cli.R
 
+# general simulation parameters
+SEED <- 1
+REPETITIONS <- 5000
+ALPHA <- 0.05
+BLOCKLENGTH <- 4
+BINARY_THRESHOLD <- 0.6
+
 # valid user input
 VALID_SCENARIOS <- c(1, 2)
 VALID_EFFECTS <- c("pois", "nbinom", "lnorm", "norm")
@@ -52,13 +59,6 @@ EFFECT_GROUP <- "P"
 # variable names in dataset
 TIME_VARIABLE <- "Time"
 GROUP_VARIABLE <- "Group"
-
-# other simulation parameters
-SEED <- 1
-REPETITIONS <- 5000
-ALPHA <- 0.05
-BLOCKLENGTH <- 4
-BINARY_THRESHOLD <- 0.6
 
 # combine parameters in global config object
 CONFIG <- list(
