@@ -307,9 +307,6 @@ test_h0 <- function(data,
   capture.output(
     p_value <- nparLD(form, data, subject="Id")$ANOVA.test[3,3]
   )
-  if (is.na(p_value < alpha)) {
-    browser()
-  }
   return(p_value < alpha)
 }
 
