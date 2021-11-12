@@ -85,20 +85,21 @@ parameters <- CONFIG$parameters[[opt$effect]]
 set.seed(CONFIG$seed)
 data <- read_data(opt$dataset, CONFIG)
 
-# exclude NAs
+# exclude NAs and print dataset info
 reduced_data <- exclude_na_blocks(data, opt$target, CONFIG$blocklength)
 diff <- nrow(data) - nrow(reduced_data)
 if (diff != 0) {
   cat(diff, "rows have been removed from the dataset due to NA-values.\n\n")
   data <- reduced_data
 }
+cat(get_dataset_info(data, CONFIG), "\n")
 
+# start simulations
 if (opt$compute_alpha) {
   cat("computing alpha error...\n")
   alpha_errors <- compute_alpha_error(data, opt, CONFIG)
   cat("P1: ", alpha_errors[1], ", P2: ", alpha_errors[2], "\n\n", sep="")
 }
-     
 cat("computing power...\n")
 power <- list()
 for (p in parameters) {

@@ -11,7 +11,7 @@ suppressPackageStartupMessages(require(nparLD))
 #' from the dataset (i.e., the NA-rows as well as their surrounding rows will 
 #' be removed)
 #'
-#' @param data data.table with the full study dataset
+#' @param data data.table with the simulation data
 #' @param target name of the target variable column in data
 #' @param blocklength number of measurements in a block
 #'
@@ -44,7 +44,7 @@ exclude_na_blocks <- function(data,
 #' 
 #' The given dataset will be modified in place.
 #'
-#' @param data data.table with the full study dataset
+#' @param data data.table with the simulation data
 #' @param target name of the target variable column in data
 #' @param blocklength number of measurements in a block
 permute <- function(data,
@@ -109,7 +109,7 @@ generate_effect <- function(effect_type,
 #' 
 #' Note that data will be modified in place.
 #' 
-#' @param data data.table with the full study dataset
+#' @param data data.table with the simulation data
 #' @param params named vector that maps parameter names to parameter values
 #' @param options list with user-defined command line arguments
 #' @param config list with further arguments
@@ -154,7 +154,7 @@ add_main_effect <- function(data,
 #' 
 #' Note that data will be modified in place.
 #'
-#' @param data data.table with the full study dataset
+#' @param data data.table with the simulation data
 #' @param effect vector with integer effects
 #' @param options list with user-defined command line arguments
 #' @param config list with further arguments
@@ -190,7 +190,7 @@ add_dependent_effect <- function(data,
 #' 
 #' Note that data is modified in place.
 #' 
-#' @param data data.table with the full study dataset
+#' @param data data.table with the simulation data
 #' @param target name of the target column in data
 #' @param max_values named vector that maps variable names to maximum values
 truncate_target <- function(data,
@@ -216,7 +216,7 @@ truncate_target <- function(data,
 #' Note that data is modified in place.
 #'
 #' @param binarize whether to apply binarization or not (TRUE/FALSE)
-#' @param data data.table with the full study dataset
+#' @param data data.table with the simulation data
 #' @param target name of the target column in data
 #' @param blocklength number of measurements in a block
 #' @param threshold decides whether a value is replaced by 0 or 1
@@ -267,7 +267,7 @@ binarize_target <- function(binarize,
 #' Moreover, options and config must contain all entries required by 
 #' add_main_effect and add_dependent_effect.
 #' 
-#' @param data data.table with the full study dataset
+#' @param data data.table with the simulation data
 #' @param params named vector that maps parameter names to parameter values
 #' @param options list with user-defined command line arguments
 #' @param config list with further arguments
@@ -288,7 +288,7 @@ add_effect <- function(data,
 #' Split the dataset accorind to the soecified period and perform a hypothesis 
 #' test.
 #'
-#' @param data data.table with the full study dataset
+#' @param data data.table with the simulation data
 #' @param period study period (either 1 or 2)
 #' @param target name of the target variable
 #' @param alpha type-I error rate
@@ -325,7 +325,7 @@ test_h0 <- function(data,
 #' one subject.
 #' config$alpha is the expected type I error rate.
 #'
-#' @param data data.table with the full study dataset
+#' @param data data.table with the simulation data
 #' @param options list with user-defined command line arguments
 #' @param config list with further arguments
 #'
@@ -373,7 +373,7 @@ compute_alpha_error <- function(data,
 #' Moreover, options and config must contain all attributes required by 
 #' add_effect.
 #'
-#' @param data data.table with the full study dataset
+#' @param data data.table with the simulation data
 #' @param params named vector that maps parameter names to values
 #' @param options list with user-defined command line arguments
 #' @param config list with further arguments
@@ -422,4 +422,38 @@ read_data <- function(filename,
   o <- order(data[[subject]], data[[time]])
   data <- data[o, ]
   return(as.data.table(data))
+}
+
+
+#' Summarise Dataset
+#' 
+#' Create a (multiline) string with informations about the given dataset
+#'
+#' @param data data.table with the study data
+#' @param config global config object
+#' 
+#' config$subject_variable is the name of the variable that identifies subjects 
+#' in data.
+#' config$group_variable is the name of the group variable in data.
+#'
+#' @return printable string with dataset info.
+get_dataset_info <- function(data,
+                             config) {
+  svar <- config$subject_variable
+  gvar <- config$group_variable
+  ids <- data[[config$subject_variable]]
+  unique_ids <- sort(unique(ids))
+  text <- paste0(length(unique_ids),
+                 " subjects found in the dataset (",
+                 svar, ", count, ", gvar, "):\n")
+  for (id in unique_ids) {
+    id_frame <- data[ids == id, ]
+    n <- nrow(id_frame)
+    g <- id_frame[[gvar]]
+    g <- sort(unique(as.character(g)))
+    g <- paste0(g, collapse=" ")
+    row <- paste0(id, ", ", n, ", (", g, ")\n")
+    text <- paste0(text, row)
+  }
+  return(text)
 }

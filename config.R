@@ -61,6 +61,9 @@ TIME_VARIABLE <- "Time"
 GROUP_VARIABLE <- "Group"
 SUBJECT_VARIABLE <- "Id"
 
+# period separation time
+FIRST_PERIOD_END <- 7
+
 # combine parameters in global config object
 CONFIG <- list(
   valid_scenarios       = VALID_SCENARIOS,
@@ -72,6 +75,7 @@ CONFIG <- list(
   main_effect_time      = MAIN_EFFECT_TIME,
   dependent_effect_time = DEPENDENT_EFFECT_TIME,
   effect_group          = EFFECT_GROUP,
+  first_period_end      = FIRST_PERIOD_END,
   max_values            = MAX_VALUES,
   blocklength           = BLOCKLENGTH,
   binary_threshold      = BINARY_THRESHOLD,
