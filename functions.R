@@ -486,3 +486,15 @@ get_period_info <- function(data,
 #' config$group_variable is the name of the group variable in data.
 #'
 #' @return printable string with dataset info.
+#' 
+get_split_info <- function(data,
+                           config) {
+  select <- data[[config$time_variable]] <= config$first_period_end
+  periods <- list(data[select], data[!select])
+  text <- ""
+  for (i in 1:2) {
+    text <- paste0(text, "period ", i, ":\n",
+                   get_period_info(periods[[i]], config), "\n")
+  }
+  return(text)
+}
