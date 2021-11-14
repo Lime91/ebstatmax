@@ -54,7 +54,8 @@ MAX_VALUES <- c(
 # effect localization
 MAIN_EFFECT_TIME <- c(4, 12)
 DEPENDENT_EFFECT_TIME <- c(7, 15)
-EFFECT_GROUP <- "P"
+PLACEBO_GROUP <- "P"
+VERUM_GROUP <- "V"
 
 # variable names in dataset
 TIME_VARIABLE <- "Time"
@@ -74,7 +75,8 @@ CONFIG <- list(
   subject_variable      = SUBJECT_VARIABLE,
   main_effect_time      = MAIN_EFFECT_TIME,
   dependent_effect_time = DEPENDENT_EFFECT_TIME,
-  effect_group          = EFFECT_GROUP,
+  placebo_group         = PLACEBO_GROUP,
+  verum_group           = VERUM_GROUP,
   first_period_end      = FIRST_PERIOD_END,
   max_values            = MAX_VALUES,
   blocklength           = BLOCKLENGTH,

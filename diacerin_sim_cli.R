@@ -12,6 +12,17 @@ suppressPackageStartupMessages(require(optparse))
 source("./functions.R")  # import functions
 source("./config.R")  # import a global CONFIG object
 
+get_split_info <- function(data,
+                           config) {
+  select <- data[[config$time_variable]] <= config$first_period_end
+  periods <- list(data[select], data[!select])
+  text <- ""
+  for (i in 1:2) {
+    text <- paste0(text, "period ", i, ":\n",
+                   get_period_info(periods[[i]], config), "\n")
+  }
+  return(text)
+}
 # command line option parsing
 option_list <- list(
   make_option(c("-d", "--dataset"),
@@ -92,7 +103,7 @@ if (diff != 0) {
   cat(diff, "rows have been removed from the dataset due to NA-values.\n\n")
   data <- reduced_data
 }
-cat(get_dataset_info(data, CONFIG), "\n")
+cat(get_split_info(data, CONFIG), "\n")
 
 # start simulations
 if (opt$compute_alpha) {

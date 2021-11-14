@@ -104,7 +104,7 @@ generate_effect <- function(effect_type,
 #' which effects are added.
 #' config$time_variable is the name of the column in data that contains times.
 #' 
-#' config$effect_group is the name of the group to which effects are added.
+#' config$placebo_group is the name of the group to which effects are added.
 #' config$group_variable is the name of the column in data that contains groups.
 #' 
 #' Note that data will be modified in place.
@@ -120,7 +120,7 @@ add_main_effect <- function(data,
                             options,
                             config) {
   times <- config$main_effect_time
-  group <- config$effect_group
+  group <- config$placebo_group
   time_variable <- config$time_variable
   group_variable <- config$group_variable
   w <- which(
@@ -149,7 +149,7 @@ add_main_effect <- function(data,
 #' at which effects are added.
 #' config$time_variable is the name of the column in data that contains times.
 #' 
-#' config$effect_group is the name of the group to which effects are added.
+#' config$placebo_group is the name of the group to which effects are added.
 #' config$group_variable is the name of the column in data that contains groups.
 #' 
 #' Note that data will be modified in place.
@@ -166,7 +166,7 @@ add_dependent_effect <- function(data,
     return()
   } else if (options$scenario == 2) {
     times <- config$dependent_effect_time
-    group <- config$effect_group
+    group <- config$placebo_group
     time_variable <- config$time_variable
     group_variable <- config$group_variable
     w <- which(
@@ -425,9 +425,9 @@ read_data <- function(filename,
 }
 
 
-#' Summarise Dataset
+#' Summarise Dataset Containing a Single Trial Period
 #' 
-#' Create a (multiline) string with informations about the given dataset
+#' Create a (multiline) string with information about the given dataset.
 #'
 #' @param data data.table with the study data
 #' @param config global config object
@@ -437,23 +437,52 @@ read_data <- function(filename,
 #' config$group_variable is the name of the group variable in data.
 #'
 #' @return printable string with dataset info.
-get_dataset_info <- function(data,
-                             config) {
+get_period_info <- function(data,
+                            config) {
   svar <- config$subject_variable
   gvar <- config$group_variable
+  v <- config$verum_group
+  p <- config$placebo_group
+  p_count <- 0
+  v_count <- 0
   ids <- data[[config$subject_variable]]
   unique_ids <- sort(unique(ids))
-  text <- paste0(length(unique_ids),
-                 " subjects found in the dataset (",
-                 svar, ", count, ", gvar, "):\n")
+  text <- ""
   for (id in unique_ids) {
     id_frame <- data[ids == id, ]
     n <- nrow(id_frame)
-    g <- id_frame[[gvar]]
-    g <- sort(unique(as.character(g)))
-    g <- paste0(g, collapse=" ")
-    row <- paste0(id, ", ", n, ", (", g, ")\n")
+    g <- unique(as.character(id_frame[[gvar]]))
+    if (g == v) {
+      v_count <- v_count + 1
+    } else if (g == p) {
+      p_count <- p_count + 1
+    } else {
+      stop(paste0("group '", g, "' is invalid (subject ", id, ")"))
+    }
+    row <- paste0(id, ", ", n, ", ", g, "\n")
     text <- paste0(text, row)
   }
+  text <- paste0(length(unique_ids),
+                 " subjects found (",
+                 v_count, " verum and ", p_count, " placebo).\n",
+                 svar, ", count, ", gvar, ":\n",
+                 text)
   return(text)
 }
+
+
+#' Summarize Dataset Split According to Trial Period
+#'
+#' Create a (multiline) string with information about the given dataset.
+#'
+#' @param data data.table with the study data
+#' @param config global config object
+#' 
+#' config$first_period_end is the last timepoint in the first trial period.
+#' config$time_variable is the name of the variable containing timepoints in 
+#' the dataset.
+#' config$subject_variable is the name of the variable that identifies subjects 
+#' in data.
+#' config$group_variable is the name of the group variable in data.
+#'
+#' @return printable string with dataset info.
