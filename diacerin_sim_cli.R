@@ -97,15 +97,21 @@ cat(get_split_info(data, CONFIG), "\n")
 # start simulations
 if (opt$compute_alpha) {
   cat("computing alpha error...\n")
-  alpha_errors <- compute_alpha_error(data, opt, CONFIG)
-  cat("P1: ", alpha_errors[1], ", P2: ", alpha_errors[2], "\n\n", sep="")
+  l <- compute_alpha_error(data, opt, CONFIG)
+  cat("period 1: error= ", l$period_1$error,
+      " (#NA= ", l$period_1$na_count, ")\n",
+      "period 2: error= ", l$period_2$error,
+      " (#NA= ", l$period_2$na_count, ")\n\n",
+      sep="")
 }
 cat("computing power...\n")
-power <- list()
 for (p in parameters) {
-  results <- compute_power(data, p, opt, CONFIG)
+  l <- compute_power(data, p, opt, CONFIG)
   key <- paste(names(p), p, sep="=", collapse=", ")
-  power[[key]] = results
   cat(key, "\n")
-  cat("P1: ", results[1], ", P2: ", results[2], "\n\n", sep="")
+  cat("period 1: power= ", l$period_1$power,
+      " (#NA= ", l$period_1$na_count, ")\n",
+      "period 2: power= ", l$period_2$power,
+      " (#NA= ", l$period_2$na_count, ")\n\n",
+      sep="")
 }

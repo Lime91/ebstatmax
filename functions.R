@@ -348,7 +348,14 @@ compute_alpha_error <- function(data,
     data[, c(target) := original[[target]]]  # restore original
   }
   data[, c(target) := non_binarized[[target]]]  # restore after binarization
-  return(c(period1=mean(results1), period2=mean(results2)))
+  l <- list(
+    period_1=list(
+      error=mean(results1, na.rm=TRUE),
+      na_count=sum(is.na(results1))),
+    period_2=list(
+      error=mean(results2, na.rm=TRUE),
+      na_count=sum(is.na(results2))))
+  return(l)
 }
 
 
@@ -395,7 +402,14 @@ compute_power <- function(data,
     results2[i] <- test_h0(data, 2, target, config$alpha)
     data[, c(target) := original[[target]]]  # restore original
   }
-  return(c(period1=mean(results1), period2=mean(results2)))
+  l <- list(
+    period_1=list(
+      power=mean(results1, na.rm=TRUE),
+      na_count=sum(is.na(results1))),
+    period_2=list(
+      power=mean(results2, na.rm=TRUE),
+      na_count=sum(is.na(results2))))
+  return(l)
 }
 
 
