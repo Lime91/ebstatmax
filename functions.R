@@ -231,11 +231,7 @@ binarize_target <- function(binarize,
     for (b in block_begins) {  # 1, blocklength + 1, 2*blocklength + 1, ...
       range <- b:(b + blocklength - 1)
       block <- data[range, ..target][[target]]
-      if (block[1] == 0) {
-        stop("Computing relative values would involve dividing by 0!")
-      }
-      relative <- block/block[1]
-      binarized <- ifelse(relative < threshold, 1, 0)  # decrease is desired
+      binarized <- ifelse(block < block[1]*threshold, 1, 0)  # decrease desired
       data[range, c(target) := binarized]
     }
   }
