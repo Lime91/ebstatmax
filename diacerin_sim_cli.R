@@ -8,9 +8,10 @@
 
 
 suppressPackageStartupMessages(require(optparse))
+suppressPackageStartupMessages(require(devtools))
 
-source("./functions.R")  # import functions
-source("./config.R")  # import a global CONFIG object
+suppressMessages(devtools::load_all("simUtils"))  # load self-written utilities
+
 
 # command line option parsing
 option_list <- list(
@@ -56,13 +57,13 @@ opt <- parse_args(OptionParser(option_list=option_list),
                   convert_hyphens_to_underscores=TRUE)
 
 # sanity check
-if (!(opt$scenario %in% CONFIG$valid_scenarios))
+if (!(opt$scenario %in% simUtils::CONFIG$valid_scenarios))
   stop("Scenario must be in (",
        paste(CONFIG$valid_scenarios, collapse=", "), ")")
 
-if (!(opt$effect %in% CONFIG$valid_effects))
+if (!(opt$effect %in% simUtils::CONFIG$valid_effects))
   stop("Effect must be in ('",
-       paste(CONFIG$valid_effects, collapse="', '"), "')")
+       paste(simUtils::CONFIG$valid_effects, collapse="', '"), "')")
 
 # status message
 cat("\n")
@@ -72,32 +73,33 @@ cat("-) scenario:", opt$scenario, "\n")
 cat("-) target variable:", opt$target, "\n")
 cat("-) effect:", opt$effect, "\n")
 cat("-) binarization:", opt$binarize)
-cat(" (threshold = ", CONFIG$binary_threshold, ")\n", sep="")
-cat("-) #repetitions:", CONFIG$repetitions, "\n")
-cat("-) alpha-level:", CONFIG$alpha, "\n")
+cat(" (threshold = ", simUtils::CONFIG$binary_threshold, ")\n", sep="")
+cat("-) #repetitions:", simUtils::CONFIG$repetitions, "\n")
+cat("-) alpha-level:", simUtils::CONFIG$alpha, "\n")
 cat("\n")
 
 
 # determine parameters to iterate over
-parameters <- CONFIG$parameters[[opt$effect]]
+parameters <- simUtils::CONFIG$parameters[[opt$effect]]
 
 # program start
-set.seed(CONFIG$seed)
-data <- read_data(opt$dataset, CONFIG)
+set.seed(simUtils::CONFIG$seed)
+data <- simUtils::read_data(opt$dataset, CONFIG)
 
 # exclude NAs and print dataset info
-reduced_data <- exclude_na_blocks(data, opt$target, CONFIG$blocklength)
+reduced_data <- simUtils::exclude_na_blocks(
+  data, opt$target, simUtils::CONFIG$blocklength)
 diff <- nrow(data) - nrow(reduced_data)
 if (diff != 0) {
   cat(diff, "rows have been removed from the dataset due to NA-values.\n\n")
   data <- reduced_data
 }
-cat(get_split_info(data, CONFIG), "\n")
+cat(simUtils::get_split_info(data, CONFIG), "\n")
 
 # start simulations
 if (opt$compute_alpha) {
   cat("computing alpha error...\n")
-  l <- compute_alpha_error(data, opt, CONFIG)
+  l <- simUtils::compute_alpha_error(data, opt, simUtils::CONFIG)
   cat("period 1: error= ", l$period_1$error,
       " (#NA= ", l$period_1$na_count, ")\n",
       "period 2: error= ", l$period_2$error,
@@ -106,7 +108,7 @@ if (opt$compute_alpha) {
 }
 cat("computing power...\n")
 for (p in parameters) {
-  l <- compute_power(data, p, opt, CONFIG)
+  l <- simUtils::compute_power(data, p, opt, simUtils::CONFIG)
   key <- paste(names(p), p, sep="=", collapse=", ")
   cat(key, "\n")
   cat("period 1: power= ", l$period_1$power,

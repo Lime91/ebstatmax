@@ -1,9 +1,3 @@
-# functions to be deployed in diacerin_sim_cli.R
-
-# attach required libraries
-suppressPackageStartupMessages(require(data.table))
-suppressPackageStartupMessages(require(nparLD))
-
 
 #' Remove Blocks Containing NA in Target
 #' 
@@ -16,6 +10,7 @@ suppressPackageStartupMessages(require(nparLD))
 #' @param blocklength number of measurements in a block
 #'
 #' @return the input data reduced by excluded NA-blocks
+#' @export
 exclude_na_blocks <- function(data,
                               target,
                               blocklength) {
@@ -295,13 +290,13 @@ test_h0 <- function(data,
                     target,
                     alpha) {
   if (period == 1) {
-    data <- subset(data, Time <= 7)
+    data <- data.table::subset(data, Time <= 7)
   } else {
-    data <- subset(data, Time > 7)
+    data <- data.table::subset(data, Time > 7)
   }
   form <- as.formula(paste(target, "Group * Time", sep=" ~ "))
   capture.output(
-    p_value <- nparLD(form, data, subject="Id")$ANOVA.test[3,3]
+    p_value <- nparLD::nparLD(form, data, subject="Id")$ANOVA.test[3,3]
   )
   return(p_value < alpha)
 }
@@ -326,18 +321,19 @@ test_h0 <- function(data,
 #' @param config list with further arguments
 #'
 #' @return vector with average type-I errors for both periods
+#' @export
 compute_alpha_error <- function(data,
                                 options,
                                 config) {
   target <- options$target
-  non_binarized <- copy(data[, ..target])  # save from binarization
+  non_binarized <- data.table::copy(data[, ..target])  # save from binarization
   binarize_target(options$binarize, data, options$target,
                   config$blocklength, config$binary_threshold)
   r <- config$repetitions
   results1 <- rep(-1, r) 
   results2 <- rep(-1, r)
   for (i in 1:r) {
-    original <- copy(data[, ..target])  # save from passing by reference
+    original <- data.table::copy(data[, ..target])  # save from passing by ref
     permute(data, target, config$blocklength)
     results1[i] <- test_h0(data, 1, target, config$alpha)
     results2[i] <- test_h0(data, 2, target, config$alpha)
@@ -382,6 +378,7 @@ compute_alpha_error <- function(data,
 #' @param config list with further arguments
 #'
 #' @return vector with average power values for both periods
+#' @export
 compute_power <- function(data,
                           params,
                           options,
@@ -391,7 +388,7 @@ compute_power <- function(data,
   results1 <- rep(-1, r) 
   results2 <- rep(-1, r)
   for (i in 1:r) {
-    original <- copy(data[, ..target])  # save from passing by reference
+    original <- data.table::copy(data[, ..target])  # save from passing by ref
     permute(data, target, config$blocklength)
     add_effect(data, params, options, config)
     results1[i] <- test_h0(data, 1, target, config$alpha)
@@ -421,6 +418,7 @@ compute_power <- function(data,
 #' @param config list with further arguments
 #'
 #' @return the preprocessed dataset as data.table
+#' @export
 read_data <- function(filename,
                       config) {
   data = read.delim2(filename, na.strings=c("n/a"))
@@ -431,7 +429,7 @@ read_data <- function(filename,
   subject <- config$subject_variable
   o <- order(data[[subject]], data[[time]])
   data <- data[o, ]
-  return(as.data.table(data))
+  return(data.table::as.data.table(data))
 }
 
 
@@ -447,6 +445,7 @@ read_data <- function(filename,
 #' config$group_variable is the name of the group variable in data.
 #'
 #' @return printable string with dataset info.
+#' @export
 get_period_info <- function(data,
                             config) {
   svar <- config$subject_variable
@@ -496,7 +495,7 @@ get_period_info <- function(data,
 #' config$group_variable is the name of the group variable in data.
 #'
 #' @return printable string with dataset info.
-#' 
+#' @export
 get_split_info <- function(data,
                            config) {
   select <- data[[config$time_variable]] <= config$first_period_end
