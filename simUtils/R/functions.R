@@ -290,9 +290,9 @@ test_h0 <- function(data,
                     target,
                     alpha) {
   if (period == 1) {
-    data <- data.table::subset(data, Time <= 7)
+    data <- subset(data, Time <= 7)
   } else {
-    data <- data.table::subset(data, Time > 7)
+    data <- subset(data, Time > 7)
   }
   form <- as.formula(paste(target, "Group * Time", sep=" ~ "))
   capture.output(
