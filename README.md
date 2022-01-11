@@ -3,7 +3,7 @@ Simulation-based computation of power and type-I error of statistical testing pr
 
 ## Contents
 
-The main part of this project is the `diacerin_sim_cli.R` script. It provides users with a commad line interface to perform simulations. This script uses various utility functions and global `CONFIG` object from the supplied `R`-package `simUtils`.
+The main part of this project is the `diacerin_sim_cli.R` script. It provides users with a command line interface to perform simulations. This script uses various utility functions and global `CONFIG` object from the supplied `R`-package `simUtils`.
 
 ## Install and Run
 
