@@ -206,30 +206,73 @@ truncate_target <- function(data,
 #' Target variable values are supposed to be divided into blocks of equal size. 
 #' Each block combines measurements for one subject at different points of 
 #' time. Whether a measurement is replaced by 0 or by 1 depends on its 
-#' magnitude relative to the first value in the same block.
+#' magnitude relative to the first value in the same block (i.e., relative to 
+#' the baseline measurement). After all target values have been replaced by 
+#' either 0 or 1, the baseline measurement is removed from data. This is 
+#' because all baseline value would equal 0 (as they cannot decrease relative 
+#' to themselves), and hence, do not contain additional information.
+#' 
+#' options$target contains the name of the target variable.
+#' options$binarize determines if the target should be binarized or not (TRUE/
+#' FALSE).
+#' config$binary_threshold a relative measure that determines whether a target 
+#' value is replaced by 0 or 1.
+#' config$blocklength is the number of measurements in a block that refer to 
+#' one subject.
+#' config$baseline_time contains the points in time at which baseline measures 
+#' were collected.
 #' 
 #' Note that data is modified in place.
 #'
-#' @param binarize whether to apply binarization or not (TRUE/FALSE)
 #' @param data data.table with the simulation data
-#' @param target name of the target column in data
-#' @param blocklength number of measurements in a block
-#' @param threshold decides whether a value is replaced by 0 or 1
-binarize_target <- function(binarize,
-                            data,
-                            target,
-                            blocklength,
-                            threshold) {
-  if (binarize) {
+#' @param options list with user-defined command line arguments
+#' @param config list with further arguments
+binarize_target <- function(data,
+                            options,
+                            config) {
+  if (options$binarize) {
+    target <- options$target
     n <- nrow(data)
-    block_begins <- which(1:n %% blocklength == 1)
+    block_begins <- which(1:n %% config$blocklength == 1)
     for (b in block_begins) {  # 1, blocklength + 1, 2*blocklength + 1, ...
-      range <- b:(b + blocklength - 1)
+      range <- b:(b + config$blocklength - 1)
       block <- data[range, ..target][[target]]
-      binarized <- ifelse(block < block[1]*threshold, 1, 0)  # decrease desired
+      binarized <- ifelse(
+        block < block[1]*config$binary_threshold,  # decrease desired
+        1,
+        0)
       data[range, c(target) := binarized]
     }
   }
+}
+
+
+#' Remove Baseline Measurements
+#'
+#' After all target values have been replaced by either 0 or 1, the baseline 
+#' measurement can be removed from data. This is because all baseline values 
+#' equal 0 (as they cannot decrease relative to themselves), and hence, do not 
+#' contain additional information.
+#' 
+#' options$binarize determines if the target was be binarized or not (TRUE/
+#' FALSE).
+#' config$time_variable is the name of the variable containing timepoints in 
+#' the dataset.
+#' config$baseline_time contains the points in time at which baseline measures 
+#' were collected.
+#'
+#' @param data data.table with the simulation data
+#' @param options list with user-defined command line arguments
+#' @param config list with further arguments
+#' @return the shrinked dataset (original dataset remains untouched)
+discard_baseline <- function(data,
+                             options,
+                             config) {
+  if (options$binarize) {
+    query <- !(data[[config$time_variable]] %in% config$baseline_time)
+    data <- data[query]
+  }
+  return(data)
 }
 
 
@@ -240,8 +283,7 @@ binarize_target <- function(binarize,
 #' holds is established. The distribution of the additive effect is specified 
 #' by user command line arguments together with a config object. Depending on 
 #' the (user-specified) target variable, the respective values will be 
-#' truncated after the effects have been added. Moreover, users may choose to 
-#' binarize the target variable, which is done also in this function.´
+#' truncated after the effects have been added.
 #' 
 #' data is modified in place.
 #' 
@@ -251,8 +293,6 @@ binarize_target <- function(binarize,
 #' dependent effects are added.
 #' 
 #' options$target contains the name of the target variable in data.
-#' options$binarize determines if the target should be binarized (cf. 
-#' binarize_target).
 #' config$max_values contains a named vector with maximum values for various 
 #' target variables.
 #' Moreover, options and config must contain all entries required by 
@@ -269,36 +309,56 @@ add_effect <- function(data,
   effect_vals <- add_main_effect(data, params, options, config)
   add_dependent_effect(data, effect_vals, options, config)
   truncate_target(data, options$target, config$max_values)
-  binarize_target(options$binarize, data, options$target,
-                  config$blocklength, config$binary_threshold)
 }
 
 
 #' Perform Hypothesis Test
 #'
-#' Split the dataset accorind to the soecified period and perform a hypothesis 
+#' Split the dataset according to the specified period and perform a hypothesis 
 #' test.
+#' 
+#' options$target contains the name of the target variable in data.
+#' config$first_period_end is the last point of time that belongs to the first 
+#' study period.
+#' config$time_variable is the name of the variable containing timepoints in 
+#' data.
+#' config$subject_variable is the name of the variable that identifies subjects 
+#' in data.
+#' config$group_variable is the name of the group variable in data.
+#' config$alpha is the type-I error rate.
+#' Moreover, options and config must contain all entries required by 
+#' discard_baseline.
 #'
 #' @param data data.table with the simulation data
 #' @param period study period (either 1 or 2)
+#' @param options list with user-defined command line arguments
+#' @param config list with further arguments
 #' @param target name of the target variable
 #' @param alpha type-I error rate
 #'
 #' @return the test result (TRUE if H0 is rejected, FALSE otherwise)
 test_h0 <- function(data,
                     period,
-                    target,
-                    alpha) {
+                    options,
+                    config) {
+  data <- discard_baseline(data, options, config)  # discard baseline if needed
+  query <- data[[config$time_variable]] <= config$first_period_end
   if (period == 1) {
-    data <- subset(data, Time <= 7)
-  } else {
-    data <- subset(data, Time > 7)
+    data <- data[query]
+  } else {  # period == 2
+    data <- data[!query]
   }
-  form <- as.formula(paste(target, "Group * Time", sep=" ~ "))
+  form <- as.formula(paste(
+    options$target,
+    paste(config$group_variable, config$time_variable, sep=" * "),
+    sep=" ~ "))
   capture.output(
-    p_value <- nparLD::nparLD(form, data, subject="Id")$ANOVA.test[3,3]
+    p_value <- nparLD::nparLD(
+      form,
+      data,
+      subject=config$subject_variable)$ANOVA.test[3,3]
   )
-  return(p_value < alpha)
+  return(p_value < config$alpha)
 }
 
 
@@ -327,16 +387,15 @@ compute_alpha_error <- function(data,
                                 config) {
   target <- options$target
   non_binarized <- data.table::copy(data[, ..target])  # save from binarization
-  binarize_target(options$binarize, data, options$target,
-                  config$blocklength, config$binary_threshold)
+  binarize_target(data, options, config)
   r <- config$repetitions
   results1 <- rep(-1, r) 
   results2 <- rep(-1, r)
   for (i in 1:r) {
     original <- data.table::copy(data[, ..target])  # save from passing by ref
     permute(data, target, config$blocklength)
-    results1[i] <- test_h0(data, 1, target, config$alpha)
-    results2[i] <- test_h0(data, 2, target, config$alpha)
+    results1[i] <- test_h0(data, 1, options, config)
+    results2[i] <- test_h0(data, 2, options, config)
     data[, c(target) := original[[target]]]  # restore original
   }
   data[, c(target) := non_binarized[[target]]]  # restore after binarization
@@ -360,7 +419,8 @@ compute_alpha_error <- function(data,
 #' periods.
 #' 
 #' The additive random effect is specified by a combination of user input (the 
-#' attribute options$effect) and the params argument.
+#' attribute options$effect) and the params argument. Users can also choose to 
+#' binarize the target variable.
 #' 
 #' options$target contains the name of the target variable.
 #' config$repetitions is the number of repetitions to perform (i.e., the 
@@ -368,6 +428,8 @@ compute_alpha_error <- function(data,
 #' config$blocklength is the number of measurements in a block that refer to 
 #' one subject.
 #' config$alpha is the expected type I error rate.
+#' options$binarize determines if the target should be binarized (cf. 
+#' binarize_target).
 #' 
 #' Moreover, options and config must contain all attributes required by 
 #' add_effect.
@@ -391,8 +453,9 @@ compute_power <- function(data,
     original <- data.table::copy(data[, ..target])  # save from passing by ref
     permute(data, target, config$blocklength)
     add_effect(data, params, options, config)
-    results1[i] <- test_h0(data, 1, target, config$alpha)
-    results2[i] <- test_h0(data, 2, target, config$alpha)
+    binarize_target(data, options, config)
+    results1[i] <- test_h0(data, 1, options, config)
+    results2[i] <- test_h0(data, 2, options, config)
     data[, c(target) := original[[target]]]  # restore original
   }
   l <- list(

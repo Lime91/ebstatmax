@@ -54,6 +54,7 @@ MAX_VALUES <- c(
 # effect localization
 MAIN_EFFECT_TIME <- c(4, 12)
 DEPENDENT_EFFECT_TIME <- c(7, 15)
+BASELINE_TIME <- c(0, 8)
 PLACEBO_GROUP <- "P"
 VERUM_GROUP <- "V"
 
@@ -75,6 +76,7 @@ CONFIG <- list(
   subject_variable      = SUBJECT_VARIABLE,
   main_effect_time      = MAIN_EFFECT_TIME,
   dependent_effect_time = DEPENDENT_EFFECT_TIME,
+  baseline_time         = BASELINE_TIME,
   placebo_group         = PLACEBO_GROUP,
   verum_group           = VERUM_GROUP,
   first_period_end      = FIRST_PERIOD_END,
