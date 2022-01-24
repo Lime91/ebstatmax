@@ -6,3 +6,6 @@ data/*
 # ignore miscellaneous files
 misc/*
 !misc/.gitkeep
+
+# R history
+.Rhistory
