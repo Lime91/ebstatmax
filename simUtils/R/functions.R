@@ -220,8 +220,6 @@ truncate_target <- function(data,
 #' target value is replaced by 0 or 1.
 #' `config$blocklength` is the number of measurements in a block that refer to 
 #' one subject.
-#' `config$baseline_time` contains the points in time at which baseline 
-#' measures were collected.
 #' 
 #' Note that `data` is modified in place.
 #'

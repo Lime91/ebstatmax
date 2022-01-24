@@ -33,8 +33,6 @@ to themselves), and hence, do not contain additional information.
 target value is replaced by 0 or 1.
 \code{config$blocklength} is the number of measurements in a block that refer to
 one subject.
-\code{config$baseline_time} contains the points in time at which baseline
-measures were collected.
 
 Note that \code{data} is modified in place.
 }
