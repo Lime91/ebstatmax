@@ -7,13 +7,13 @@
 add_main_effect(data, params, options, config)
 }
 \arguments{
-\item{data}{data.table with the simulation data}
+\item{data}{\code{data.table} with the simulation data}
 
 \item{params}{named vector that maps parameter names to parameter values}
 
-\item{options}{list with user-defined command line arguments}
+\item{options}{\code{list} with user-defined command line arguments}
 
-\item{config}{list with further arguments}
+\item{config}{\code{list} with further arguments}
 }
 \value{
 vector with the effects that were added to the target variable
@@ -23,18 +23,18 @@ At a specific group and at specific points of time, add random integer
 effects to the target variable.
 }
 \details{
-options$effect_type is the name of the distribution of the added effects.
+\code{options$effect_type} is the name of the distribution of the added effects.
 The params argument provides additional parameters for this distribution.
+\code{options$target} is the user-defined name of the target variable in \code{data}
+to which effects are applied.
 
-options$target is the user-defined name of the target variable in data to
-which effects are applied.
-
-config$main_effect_time is a vector that specifies the points of time at
+\code{config$main_effect_time} is a vector that specifies the points of time at
 which effects are added.
-config$time_variable is the name of the column in data that contains times.
+\code{config$time_variable} is the name of the column in \code{data} that contains
+times.
+\code{config$placebo_group} is the name of the group to which effects are added.
+\code{config$group_variable} is the name of the column in \code{data} that contains
+groups.
 
-config$placebo_group is the name of the group to which effects are added.
-config$group_variable is the name of the column in data that contains groups.
-
-Note that data will be modified in place.
+Note that \code{data} will be modified in place.
 }

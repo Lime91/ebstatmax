@@ -6,6 +6,7 @@ export(exclude_na_blocks)
 export(get_period_info)
 export(get_split_info)
 export(read_data)
+export(test_h0)
 
 # manually added exports:
 

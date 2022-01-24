@@ -7,7 +7,7 @@
 exclude_na_blocks(data, target, blocklength)
 }
 \arguments{
-\item{data}{data.table with the simulation data}
+\item{data}{\code{data.table} with the simulation data}
 
 \item{target}{name of the target variable column in data}
 

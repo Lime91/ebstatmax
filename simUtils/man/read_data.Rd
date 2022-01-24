@@ -9,15 +9,15 @@ read_data(filename, config)
 \arguments{
 \item{filename}{path to the tab-separated dataset file}
 
-\item{config}{list with further arguments}
+\item{config}{\code{list} with further arguments}
 }
 \value{
-the preprocessed dataset as data.table
+the preprocessed dataset as \code{data.table}
 }
 \description{
-The dataset is read in as data.table. This is important as many of the other
-functions require this data type. The dataset is supposed to consist of
-tab-separated values (tsv). Its rows will be reordered according to
-config$subject_variable and config$time_variable. Moreover, the time
-variable will be casted to numeric to establish an order w.r.t. time.
+The dataset is read in as \code{data.table}. This is important as many of the
+other functions require this specific data type. The dataset is supposed to
+consist of tab-separated values (tsv). Its rows will be sorted according
+to \code{config$subject_variable} and \code{config$time_variable}. For this purpose,
+the time variable will be casted to numeric.
 }

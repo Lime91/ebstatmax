@@ -7,13 +7,13 @@
 get_period_info(data, config)
 }
 \arguments{
-\item{data}{data.table with the study data}
+\item{data}{\code{data.table} with the study data}
 
 \item{config}{global config object
 
-config$subject_variable is the name of the variable that identifies subjects
-in data.
-config$group_variable is the name of the group variable in data.}
+\code{config$subject_variable} is the name of the variable that identifies
+subjects in data.
+\code{config$group_variable} is the name of the group variable in \code{data}.}
 }
 \value{
 printable string with dataset info.

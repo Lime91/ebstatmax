@@ -7,13 +7,13 @@
 add_effect(data, params, options, config)
 }
 \arguments{
-\item{data}{data.table with the simulation data}
+\item{data}{\code{data.table} with the simulation data}
 
 \item{params}{named vector that maps parameter names to parameter values}
 
-\item{options}{list with user-defined command line arguments}
+\item{options}{\code{list} with user-defined command line arguments}
 
-\item{config}{list with further arguments}
+\item{config}{\code{list} with further arguments}
 }
 \description{
 In order to simulate power of a statistical test, a random effect is added
@@ -21,22 +21,19 @@ to the (permuted) target variable values. Thus, a situation in which H1
 holds is established. The distribution of the additive effect is specified
 by user command line arguments together with a config object. Depending on
 the (user-specified) target variable, the respective values will be
-truncated after the effects have been added. Moreover, users may choose to
-binarize the target variable, which is done also in this function.´
+truncated after the effects have been added.
 }
 \details{
-data is modified in place.
+\code{data} is modified in place.
 
-options$scenario determines the simulation scenario. If
-options$scenario == 1, only independent main effects are added.
-options$scenario == 2 means that, in addition to the main effects, also
+\code{options$scenario} determines the simulation scenario. If
+\code{options$scenario == 1}, only independent main effects are added.
+\code{options$scenario == 2} means that, in addition to the main effects, also
 dependent effects are added.
 
-options$target contains the name of the target variable in data.
-options$binarize determines if the target should be binarized (cf.
-binarize_target).
-config$max_values contains a named vector with maximum values for various
+\code{options$target} contains the name of the target variable in \code{data}.
+\code{config$max_values} contains a named vector with maximum values for various
 target variables.
-Moreover, options and config must contain all entries required by
-add_main_effect and add_dependent_effect.
+Moreover, \code{options} and \code{config} must contain all entries required by
+\code{add_main_effect} and \code{add_dependent_effect}.
 }
