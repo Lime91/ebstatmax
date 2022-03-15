@@ -7,13 +7,13 @@
 compute_power(data, params, options, config)
 }
 \arguments{
-\item{data}{data.table with the simulation data}
+\item{data}{\code{data.table} with the simulation data}
 
 \item{params}{named vector that maps parameter names to values}
 
-\item{options}{list with user-defined command line arguments}
+\item{options}{\code{list} with user-defined command line arguments}
 
-\item{config}{list with further arguments}
+\item{config}{\code{list} with further arguments}
 }
 \value{
 vector with average power values for both periods
@@ -27,15 +27,18 @@ periods.
 }
 \details{
 The additive random effect is specified by a combination of user input (the
-attribute options$effect) and the params argument.
+attribute \code{options$effect}) and the \code{params} argument. Users can also choose
+to binarize the target variable (cf. \code{binarize_target}).
 
-options$target contains the name of the target variable.
-config$repetitions is the number of repetitions to perform (i.e., the
+\code{options$target} contains the name of the target variable.
+\code{config$repetitions} is the number of repetitions to perform (i.e., the
 number of tests performed for each period)
-config$blocklength is the number of measurements in a block that refer to
+\code{config$blocklength} is the number of measurements in a block that refer to
 one subject.
-config$alpha is the expected type I error rate.
+\code{config$alpha} is the expected type I error rate.
+\code{options$binarize} determines whether the target should be binarized (cf.
+\code{binarize_target}).
 
-Moreover, options and config must contain all attributes required by
-add_effect.
+Moreover, \code{options} and \code{config} must contain all attributes required by
+\code{add_effect} and \code{test_h0}.
 }

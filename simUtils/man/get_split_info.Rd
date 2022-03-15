@@ -7,19 +7,19 @@
 get_split_info(data, config)
 }
 \arguments{
-\item{data}{data.table with the study data}
+\item{data}{\code{data.table} with the study data}
 
 \item{config}{global config object
 
-config$first_period_end is the last timepoint in the first trial period.
-config$time_variable is the name of the variable containing timepoints in
-the dataset.
-config$subject_variable is the name of the variable that identifies subjects
-in data.
-config$group_variable is the name of the group variable in data.}
+\code{config$first_period_end} is the last timepoint in the first trial period.
+\code{config$time_variable} is the name of the variable containing timepoints in
+\code{data}.
+\code{config$subject_variable} is the name of the variable that identifies
+subjects in \code{data}.
+\code{config$group_variable} is the name of the group variable in \code{data}.}
 }
 \value{
-printable string with dataset info.
+printable string with dataset info
 }
 \description{
 Create a (multiline) string with information about the given dataset.

@@ -4,21 +4,34 @@
 \alias{test_h0}
 \title{Perform Hypothesis Test}
 \usage{
-test_h0(data, period, target, alpha)
+test_h0(data, period, options, config)
 }
 \arguments{
-\item{data}{data.table with the simulation data}
+\item{data}{\code{data.table} with the simulation data}
 
 \item{period}{study period (either 1 or 2)}
 
-\item{target}{name of the target variable}
+\item{options}{\code{list} with user-defined command line arguments}
 
-\item{alpha}{type-I error rate}
+\item{config}{\code{list} with further arguments}
 }
 \value{
-the test result (TRUE if H0 is rejected, FALSE otherwise)
+the test result (\code{TRUE} if H0 is rejected, \code{FALSE} otherwise)
 }
 \description{
-Split the dataset accorind to the soecified period and perform a hypothesis
+Split the dataset according to the specified period and perform a hypothesis
 test.
+}
+\details{
+\code{options$target} contains the name of the target variable in data.
+\code{config$first_period_end} is the last point of time that belongs to the first
+study period.
+\code{config$time_variable} is the name of the variable containing timepoints in
+data.
+\code{config$subject_variable} is the name of the variable that identifies
+subjects in data.
+\code{config$group_variable} is the name of the group variable in data.
+\code{config$alpha} is the type-I error rate.
+Moreover, options and config must contain all entries required by
+\code{discard_baseline}.
 }

@@ -7,13 +7,13 @@
 add_dependent_effect(data, effect, options, config)
 }
 \arguments{
-\item{data}{data.table with the simulation data}
+\item{data}{\code{data.table} with the simulation data}
 
 \item{effect}{vector with integer effects}
 
-\item{options}{list with user-defined command line arguments}
+\item{options}{\code{list} with user-defined command line arguments}
 
-\item{config}{list with further arguments}
+\item{config}{\code{list} with further arguments}
 }
 \description{
 In scenario 2, additionally to the independent effects, there exist also
@@ -27,12 +27,13 @@ Currently the dependent effect is simply half of the given effect. It is
 ensured that the depended effect consists only of integers by applying
 integer division.
 
-config$dependent_effect_time is a vector that specifies the points of time
+\code{config$dependent_effect_time} is a vector that specifies the points of time
 at which effects are added.
-config$time_variable is the name of the column in data that contains times.
+\code{config$time_variable} is the name of the column in \code{data} that contains
+timepoints.
+\code{config$placebo_group} is the name of the group to which effects are added.
+\code{config$group_variable} is the name of the column in \code{data} that contains
+groups.
 
-config$placebo_group is the name of the group to which effects are added.
-config$group_variable is the name of the column in data that contains groups.
-
-Note that data will be modified in place.
+Note that \code{data} will be modified in place.
 }

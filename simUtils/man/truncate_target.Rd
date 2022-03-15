@@ -7,7 +7,7 @@
 truncate_target(data, target, max_values)
 }
 \arguments{
-\item{data}{data.table with the simulation data}
+\item{data}{\code{data.table} with the simulation data}
 
 \item{target}{name of the target column in data}
 
@@ -19,7 +19,7 @@ be truncated with this function.
 }
 \details{
 Truncation is only applied to the variables specified by the names of
-max_values.
+\code{max_values}.
 
-Note that data is modified in place.
+Note that \code{data} is modified in place.
 }

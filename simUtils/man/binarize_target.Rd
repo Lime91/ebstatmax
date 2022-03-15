@@ -4,18 +4,14 @@
 \alias{binarize_target}
 \title{Dichotomize Target Variable}
 \usage{
-binarize_target(binarize, data, target, blocklength, threshold)
+binarize_target(data, options, config)
 }
 \arguments{
-\item{binarize}{whether to apply binarization or not (TRUE/FALSE)}
+\item{data}{\code{data.table} with the simulation data}
 
-\item{data}{data.table with the simulation data}
+\item{options}{\code{list} with user-defined command line arguments}
 
-\item{target}{name of the target column in data}
-
-\item{blocklength}{number of measurements in a block}
-
-\item{threshold}{decides whether a value is replaced by 0 or 1}
+\item{config}{\code{list} with further arguments}
 }
 \description{
 If desired, replace the target variable values with 0/1 values.
@@ -24,7 +20,19 @@ If desired, replace the target variable values with 0/1 values.
 Target variable values are supposed to be divided into blocks of equal size.
 Each block combines measurements for one subject at different points of
 time. Whether a measurement is replaced by 0 or by 1 depends on its
-magnitude relative to the first value in the same block.
+magnitude relative to the first value in the same block (i.e., relative to
+the baseline measurement). After all target values have been replaced by
+either 0 or 1, the baseline measurement is removed from data. This is
+because all baseline value would equal 0 (as they cannot decrease relative
+to themselves), and hence, do not contain additional information.
 
-Note that data is modified in place.
+\code{options$target} contains the name of the target variable.
+\code{options$binarize} determines if the target should be binarized or not
+(\code{TRUE}/\code{FALSE}).
+\code{config$binary_threshold} a relative measure that determines whether a
+target value is replaced by 0 or 1.
+\code{config$blocklength} is the number of measurements in a block that refer to
+one subject.
+
+Note that \code{data} is modified in place.
 }

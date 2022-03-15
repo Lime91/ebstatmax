@@ -7,7 +7,7 @@
 permute(data, target, blocklength)
 }
 \arguments{
-\item{data}{data.table with the simulation data}
+\item{data}{\code{data.table} with the simulation data}
 
 \item{target}{name of the target variable column in data}
 
@@ -21,5 +21,5 @@ measurements for one subject. The measurements are permuted across these
 entities, but not within a block.
 }
 \details{
-The given dataset will be modified in place.
+\code{data} will be modified in place.
 }
