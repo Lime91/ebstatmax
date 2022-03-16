@@ -65,18 +65,30 @@ if (!(opt$effect %in% simUtils::CONFIG$valid_effects))
   stop("Effect must be in ('",
        paste(simUtils::CONFIG$valid_effects, collapse="', '"), "')")
 
-# status message
-cat("\n")
-cat("Starting simulations with the following parameters:\n")
-cat("-) dataset:", opt$dataset, "\n")
-cat("-) scenario:", opt$scenario, "\n")
-cat("-) target variable:", opt$target, "\n")
-cat("-) effect:", opt$effect, "\n")
-cat("-) binarization:", opt$binarize)
-cat(" (threshold = ", simUtils::CONFIG$binary_threshold, ")\n", sep="")
-cat("-) #repetitions:", simUtils::CONFIG$repetitions, "\n")
-cat("-) alpha-level:", simUtils::CONFIG$alpha, "\n")
-cat("\n")
+
+print_list_to_stderr <- function(l, header) {
+  DUMMY_LINE <- paste(rep("#", 40), collapse="")
+  df <- t(as.data.frame(l))
+  rows <- capture.output(
+    print(df, quote=FALSE, max=nrow(df))
+  )
+  serialized <- paste(rows[2:length(rows)], collapse="\n")
+  cat(
+    DUMMY_LINE,
+    header,
+    DUMMY_LINE,
+    serialized,
+    DUMMY_LINE,
+    sep="\n"
+  )
+}
+
+
+l <- within(opt, rm(help))
+l$binary_threshold <- simUtils::CONFIG$binary_threshold
+l$repetitions <- simUtils::CONFIG$repetitions
+l$alpha <- simUtils::CONFIG$alpha
+print_list_to_stderr(l, "CONFIGURATION")
 
 
 # determine parameters to iterate over
