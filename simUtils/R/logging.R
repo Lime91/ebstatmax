@@ -40,7 +40,7 @@ print_config_to_stderr <- function(options,
   l$repetitions <- config$repetitions
   l$alpha <- config$alpha
   l$random_seed <- config$seed
-  print_list_to_stderr(l, "Program Configuration")
+  print_list_to_stderr(l, "PROGRAM CONFIGURATION")
 }
 
 
@@ -70,7 +70,8 @@ get_period_frame <- function(data,
   df <- data.frame(
     Count=integer(n_subjects),
     grp=character(n_subjects),
-    row.names=unique_subjects
+    row.names=unique_subjects,
+    stringsAsFactors=FALSE
   )
   for (subject in unique_subjects) {
     subject_frame <- data[subjects == subject, ]
@@ -100,7 +101,13 @@ get_period_frame <- function(data,
 #' @export
 print_data_info_to_stderr <- function(data,
                                       config) {
-  cat("\nDATASET CHARACTERISTICS:\n", file=stderr())
+  cat(
+    DUMMY_LINE,
+    "DATASET CHARACTERISTICS",
+    DUMMY_LINE,
+    sep="\n",
+    file=stderr()
+  )
   select <- data[[config$time_variable]] <= config$first_period_end
   periods <- list(data[select], data[!select])
   for (i in 1:2) {
@@ -116,15 +123,12 @@ print_data_info_to_stderr <- function(data,
     )
     serialized <- paste(rows, collapse="\n")
     cat(
-      DUMMY_LINE,
       header1,
       header2,
-      DUMMY_LINE,
       serialized,
       DUMMY_LINE,
       sep="\n",
       file=stderr()
     )
   }
-  cat("\n", file=stderr())
 }

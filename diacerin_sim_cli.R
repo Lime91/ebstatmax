@@ -79,12 +79,13 @@ if (diff != 0) {
   cat(diff, "rows have been removed from the dataset due to NA-values.\n\n",
       file=stderr())
   data <- reduced_data
-}
+} else 
+  cat("\n", file=stderr())
 simUtils::print_data_info_to_stderr(data, simUtils::CONFIG)
 
 # start simulations
 if (opt$compute_alpha) {
-  cat("computing alpha error...\n", file=stderr())
+  cat("\ncomputing alpha error...\n", file=stderr())
   l <- simUtils::compute_alpha_error(data, opt, simUtils::CONFIG)
   cat("period 1: error= ", l$period_1$error,
       " (#NA= ", l$period_1$na_count, ")\n",
@@ -93,7 +94,7 @@ if (opt$compute_alpha) {
       sep="")
 }
 
-cat("computing power...\n", file=stderr())
+cat("\ncomputing power...\n", file=stderr())
 parameters <- simUtils::CONFIG$parameters[[opt$effect]]
 for (p in parameters) {
   l <- simUtils::compute_power(data, p, opt, simUtils::CONFIG)
