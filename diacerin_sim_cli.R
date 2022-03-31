@@ -91,7 +91,8 @@ if (opt$compute_alpha) {
       " (#NA= ", l$period_1$na_count, ")\n",
       "period 2: error= ", l$period_2$error,
       " (#NA= ", l$period_2$na_count, ")\n\n",
-      sep="")
+      sep="",
+      file=stderr())
 }
 
 cat("\ncomputing power...\n", file=stderr())
@@ -104,5 +105,6 @@ for (p in parameters) {
       " (#NA= ", l$period_1$na_count, ")\n",
       "period 2: power= ", l$period_2$power,
       " (#NA= ", l$period_2$na_count, ")\n\n",
-      sep="")
+      sep="",
+      file=stderr())
 }
