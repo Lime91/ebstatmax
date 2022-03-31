@@ -65,48 +65,38 @@ if (!(opt$effect %in% simUtils::CONFIG$valid_effects))
   stop("Effect must be in ('",
        paste(simUtils::CONFIG$valid_effects, collapse="', '"), "')")
 
-# status message
-cat("\n")
-cat("Starting simulations with the following parameters:\n")
-cat("-) dataset:", opt$dataset, "\n")
-cat("-) scenario:", opt$scenario, "\n")
-cat("-) target variable:", opt$target, "\n")
-cat("-) effect:", opt$effect, "\n")
-cat("-) binarization:", opt$binarize)
-cat(" (threshold = ", simUtils::CONFIG$binary_threshold, ")\n", sep="")
-cat("-) #repetitions:", simUtils::CONFIG$repetitions, "\n")
-cat("-) alpha-level:", simUtils::CONFIG$alpha, "\n")
-cat("\n")
+simUtils::print_config_to_stderr(opt, simUtils::CONFIG)
 
-
-# determine parameters to iterate over
-parameters <- simUtils::CONFIG$parameters[[opt$effect]]
-
-# program start
+# set seed and read data
 set.seed(simUtils::CONFIG$seed)
-data <- simUtils::read_data(opt$dataset, CONFIG)
+data <- simUtils::read_data(opt$dataset, simUtils::CONFIG)
 
 # exclude NAs and print dataset info
 reduced_data <- simUtils::exclude_na_blocks(
   data, opt$target, simUtils::CONFIG$blocklength)
 diff <- nrow(data) - nrow(reduced_data)
 if (diff != 0) {
-  cat(diff, "rows have been removed from the dataset due to NA-values.\n\n")
+  cat(diff, "rows have been removed from the dataset due to NA-values.\n\n",
+      file=stderr())
   data <- reduced_data
-}
-cat(simUtils::get_split_info(data, CONFIG), "\n")
+} else 
+  cat("\n", file=stderr())
+simUtils::print_data_info_to_stderr(data, simUtils::CONFIG)
 
 # start simulations
 if (opt$compute_alpha) {
-  cat("computing alpha error...\n")
+  cat("\ncomputing alpha error...\n", file=stderr())
   l <- simUtils::compute_alpha_error(data, opt, simUtils::CONFIG)
   cat("period 1: error= ", l$period_1$error,
       " (#NA= ", l$period_1$na_count, ")\n",
       "period 2: error= ", l$period_2$error,
       " (#NA= ", l$period_2$na_count, ")\n\n",
-      sep="")
+      sep="",
+      file=stderr())
 }
-cat("computing power...\n")
+
+cat("\ncomputing power...\n", file=stderr())
+parameters <- simUtils::CONFIG$parameters[[opt$effect]]
 for (p in parameters) {
   l <- simUtils::compute_power(data, p, opt, simUtils::CONFIG)
   key <- paste(names(p), p, sep="=", collapse=", ")
@@ -115,5 +105,6 @@ for (p in parameters) {
       " (#NA= ", l$period_1$na_count, ")\n",
       "period 2: power= ", l$period_2$power,
       " (#NA= ", l$period_2$na_count, ")\n\n",
-      sep="")
+      sep="",
+      file=stderr())
 }
