@@ -9,12 +9,20 @@
 
 suppressPackageStartupMessages(require(optparse))
 suppressPackageStartupMessages(require(devtools))
+suppressPackageStartupMessages(require(jsonlite))
 
 suppressMessages(devtools::load_all("simUtils"))  # load self-written utilities
 
 
 # command line option parsing
 option_list <- list(
+  make_option(c("-m", "--method"),
+              action="store",
+              default=CONFIG$valid_methods[1],
+              type="character",
+              help=paste0("Statistical testing procedure to simulate. One of (",
+                          paste(CONFIG$valid_methods, collapse=", "),
+                          ") [default %default].")),
   make_option(c("-d", "--dataset"),
               action="store",
               default="./data/Diacerein_study-setup.txt",
@@ -53,21 +61,13 @@ option_list <- list(
                           "testing the H0. The relative binarization ",
                           "threshold is set in the config."))
 )
+
 opt <- parse_args(OptionParser(option_list=option_list),
                   convert_hyphens_to_underscores=TRUE)
 
-# sanity check
-if (!(opt$scenario %in% simUtils::CONFIG$valid_scenarios))
-  stop("Scenario must be in (",
-       paste(CONFIG$valid_scenarios, collapse=", "), ")")
-
-if (!(opt$effect %in% simUtils::CONFIG$valid_effects))
-  stop("Effect must be in ('",
-       paste(simUtils::CONFIG$valid_effects, collapse="', '"), "')")
-
+simUtils::sanity_check(opt, simUtils::CONFIG)
 simUtils::print_config_to_stderr(opt, simUtils::CONFIG)
 
-# set seed and read data
 set.seed(simUtils::CONFIG$seed)
 data <- simUtils::read_data(opt$dataset, simUtils::CONFIG)
 
@@ -100,11 +100,12 @@ parameters <- simUtils::CONFIG$parameters[[opt$effect]]
 for (p in parameters) {
   l <- simUtils::compute_power(data, p, opt, simUtils::CONFIG)
   key <- paste(names(p), p, sep="=", collapse=", ")
-  cat(key, "\n")
-  cat("period 1: power= ", l$period_1$power,
-      " (#NA= ", l$period_1$na_count, ")\n",
-      "period 2: power= ", l$period_2$power,
-      " (#NA= ", l$period_2$na_count, ")\n\n",
-      sep="",
-      file=stderr())
+  j_list <- list()
+  j_list[[key]] <- l
+  j <- jsonlite::toJSON(
+    j_list,
+    pretty=T,
+    auto_unbox=T
+  )
+  cat(j, "\n")
 }

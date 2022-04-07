@@ -1,4 +1,26 @@
 
+#' Check User Input
+#'
+#' Perform simple sanity checks. Throw error if invalid user input is detected.
+#'
+#' @param options `list` with user-provided command line arguments
+#' @param config `list` that contains valid options to compare with
+sanity_check <- function(options,
+                         config) {
+  if (!(options$scenario %in% config$valid_scenarios))
+    stop("scenario must be in (",
+         paste(config$valid_scenarios, collapse=", "), ")")
+  
+  if (!(options$effect %in% config$valid_effects))
+    stop("effect must be in ('",
+         paste(config$valid_effects, collapse="', '"), "')")
+  
+  if (!(options$method %in% config$valid_methods))
+    stop("method must be in ('",
+         paste(config$valid_methods, collapse="', '"), "')")
+}
+
+
 #' Permute Target Variable Values
 #'
 #' Permutation distributes the target variable randomly across study subjects. 
@@ -17,8 +39,8 @@ permute <- function(data,
                     blocklength) {
   n <- length(data$Id)
   blocks <- n/blocklength
-  matr_perm = matrix(data[[target]], nrow=blocklength, ncol=blocks)
-  matr_perm = matr_perm[, sample(1:blocks)]
+  matr_perm <- matrix(data[[target]], nrow=blocklength, ncol=blocks)
+  matr_perm <- matr_perm[, sample(1:blocks)]
   data[, c(target) := c(matr_perm)]
 }
 
@@ -283,6 +305,44 @@ add_effect <- function(data,
 
 #' Perform Hypothesis Test
 #'
+#' Execute statistical testing procedure selected by user.
+#'
+#' @param data `data.table` with the simulation data
+#' @param options `list` with user-defined command line arguments
+#' @param config `list` with further arguments
+#' 
+#' `options$method` is the selected statistical testing procedure.
+#' `options$target` contains the name of the target variable in data.
+#' `config$first_period_end` is the last point of time that belongs to the first 
+#' study period.
+#' `config$time_variable` is the name of the variable containing timepoints in 
+#' data.
+#' `config$subject_variable` is the name of the variable that identifies 
+#' subjects in data.
+#' `config$group_variable` is the name of the group variable in data.
+#' `config$alpha` is the type-I error rate.
+#' Moreover, options and config must contain all entries required by 
+#' `discard_baseline`.
+#'
+#' @return a list with keys `period_1`, `period_2`, and `combined`. The  
+#' associated values are `TRUE` if the null hypothesis has been rejected and 
+#' `FALSE` otherwise. Moreover, `NA` is assigned if the test could not be 
+#' performed.
+#' @export
+perform_test <- function(data,
+                         options,
+                         config) {
+  method <- config$functions[[options$method]]
+  args <- method$arguments
+  args[["data"]] <- data
+  args[["options"]] <- options
+  args[["config"]] <- config
+  return(do.call(paste0(method$name), args))
+}
+
+
+#' Perform Hypothesis Test
+#'
 #' Split the dataset according to the specified period and perform a hypothesis 
 #' test.
 #' 
@@ -299,34 +359,38 @@ add_effect <- function(data,
 #' `discard_baseline`.
 #'
 #' @param data `data.table` with the simulation data
-#' @param period study period (either 1 or 2)
 #' @param options `list` with user-defined command line arguments
 #' @param config `list` with further arguments
 #'
 #' @return the test result (`TRUE` if H0 is rejected, `FALSE` otherwise)
 #' @export
 test_h0 <- function(data,
-                    period,
                     options,
                     config) {
   data <- discard_baseline(data, options, config)  # discard baseline if needed
   query <- data[[config$time_variable]] <= config$first_period_end
-  if (period == 1) {
-    data <- data[query]
-  } else {  # period == 2
-    data <- data[!query]
-  }
+  period1_data <- data[query]
+  period2_data <- data[!query]
   form <- as.formula(paste(
     options$target,
     paste(config$group_variable, config$time_variable, sep=" * "),
     sep=" ~ "))
   capture.output(
-    p_value <- nparLD::nparLD(
+    p_value1 <- nparLD::nparLD(
       form,
-      data,
+      period1_data,
+      subject=config$subject_variable)$ANOVA.test[3,3],
+    p_value2 <- nparLD::nparLD(
+      form,
+      period2_data,
       subject=config$subject_variable)$ANOVA.test[3,3]
   )
-  return(p_value < config$alpha)
+  l <- list(
+    period_1=(p_value1 < config$alpha),
+    period_2=(p_value2 < config$alpha),
+    combined=NA
+  )
+  return(l)
 }
 
 
@@ -418,23 +482,22 @@ compute_power <- function(data,
                           config) {
   target <- options$target
   r <- config$repetitions
-  results1 <- rep(-1, r) 
-  results2 <- rep(-1, r)
+  results <- data.frame(
+    "period_1"=rep(NA, r),
+    "period_2"=rep(NA, r),
+    "combined"=rep(NA, r)
+  )
   for (i in 1:r) {
     original <- data.table::copy(data[, ..target])  # save from passing by ref
     permute(data, target, config$blocklength)
     add_effect(data, params, options, config)
     binarize_target(data, options, config)
-    results1[i] <- test_h0(data, 1, options, config)
-    results2[i] <- test_h0(data, 2, options, config)
+    results[i, ] <- perform_test(data, options, config)
     data[, c(target) := original[[target]]]  # restore original
   }
   l <- list(
-    period_1=list(
-      power=mean(results1, na.rm=TRUE),
-      na_count=sum(is.na(results1))),
-    period_2=list(
-      power=mean(results2, na.rm=TRUE),
-      na_count=sum(is.na(results2))))
+    "power"=as.list(apply(results, 2, mean, na.rm=TRUE)),
+    "na_count"=as.list(apply(results, 2, function(x) sum(is.na(x))))
+  )
   return(l)
 }
