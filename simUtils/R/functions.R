@@ -394,6 +394,57 @@ test_h0 <- function(data,
 }
 
 
+#' Compute Null Hypothesis Rejection Rate
+#'
+#' based on data.frame of test results
+#'
+#' @param results_df `data.frame` with columns of test results (logical vectors)
+#'
+#' @return list of rejection rates with names equal to the input's column names
+rejection_rate <- function(results_df) {
+  v <- apply(
+    results_df,
+    2,
+    function(x) {
+      m <- mean(x, na.rm=TRUE)
+      ifelse(is.nan(m), NA, m)
+    }
+  )
+  return(as.list(v))
+}
+
+
+#' Count Number of Failed Hypothesis Tests
+#' 
+#' based on data.frame of test results that contains `NA` for each failed test
+#'
+#' @param results_df `data.frame` with columns of test results (logical vectors)
+#'
+#' @return list of sums with names equal to the input's column names
+na_count <- function(results_df) {
+  v <- apply(results_df, 2, function(x) sum(is.na(x)))
+  return(as.list(v))
+}
+
+
+#' Summarize Hypothesis Tests
+#' 
+#' compute H0 rejection rate and count number of failed tests based on a 
+#' data.frame of test results that contains `TRUE` for each rejected H0, 
+#' `FALSE` for each non-rejected H0 and `NA` for each failed test.
+#'
+#' @param results_df `data.frame` with columns of test results (logical vectors)
+#'
+#' @return summary list
+summarize_tests <- function(results_df) {
+  l <- list(
+    "rejection_rate"=rejection_rate(results_df),
+    "NA_count"=na_count(results_df)
+  )
+  return(l)
+}
+
+
 #' Simulation-based Computation of the Type-I Error
 #' 
 #' For a given number of repetitions, permute the target variable to establish 
@@ -424,24 +475,19 @@ compute_alpha_error <- function(data,
   non_binarized <- data.table::copy(data[, ..target])  # save from binarization
   binarize_target(data, options, config)
   r <- config$repetitions
-  results1 <- rep(-1, r) 
-  results2 <- rep(-1, r)
+  results <- data.frame(
+    "period_1"=rep(NA, r),
+    "period_2"=rep(NA, r),
+    "combined"=rep(NA, r)
+  )
   for (i in 1:r) {
     original <- data.table::copy(data[, ..target])  # save from passing by ref
     permute(data, target, config$blocklength)
-    results1[i] <- test_h0(data, 1, options, config)
-    results2[i] <- test_h0(data, 2, options, config)
+    results[i, ] <- perform_test(data, options, config)
     data[, c(target) := original[[target]]]  # restore original
   }
   data[, c(target) := non_binarized[[target]]]  # restore after binarization
-  l <- list(
-    period_1=list(
-      error=mean(results1, na.rm=TRUE),
-      na_count=sum(is.na(results1))),
-    period_2=list(
-      error=mean(results2, na.rm=TRUE),
-      na_count=sum(is.na(results2))))
-  return(l)
+  return(summarize_tests(results))
 }
 
 
@@ -495,9 +541,5 @@ compute_power <- function(data,
     results[i, ] <- perform_test(data, options, config)
     data[, c(target) := original[[target]]]  # restore original
   }
-  l <- list(
-    "power"=as.list(apply(results, 2, mean, na.rm=TRUE)),
-    "na_count"=as.list(apply(results, 2, function(x) sum(is.na(x))))
-  )
-  return(l)
+  return(summarize_tests(results))
 }

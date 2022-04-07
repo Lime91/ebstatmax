@@ -84,28 +84,29 @@ if (diff != 0) {
 simUtils::print_data_info_to_stderr(data, simUtils::CONFIG)
 
 # start simulations
+alpha <- NA
 if (opt$compute_alpha) {
-  cat("\ncomputing alpha error...\n", file=stderr())
-  l <- simUtils::compute_alpha_error(data, opt, simUtils::CONFIG)
-  cat("period 1: error= ", l$period_1$error,
-      " (#NA= ", l$period_1$na_count, ")\n",
-      "period 2: error= ", l$period_2$error,
-      " (#NA= ", l$period_2$na_count, ")\n\n",
-      sep="",
-      file=stderr())
+  cat("computing alpha error...\n", file=stderr())
+  alpha <- simUtils::compute_alpha_error(data, opt, simUtils::CONFIG)
 }
-
-cat("\ncomputing power...\n", file=stderr())
+power <- list()
+cat("computing power...\n\n", file=stderr())
 parameters <- simUtils::CONFIG$parameters[[opt$effect]]
 for (p in parameters) {
   l <- simUtils::compute_power(data, p, opt, simUtils::CONFIG)
-  key <- paste(names(p), p, sep="=", collapse=", ")
-  j_list <- list()
-  j_list[[key]] <- l
-  j <- jsonlite::toJSON(
-    j_list,
-    pretty=T,
-    auto_unbox=T
-  )
-  cat(j, "\n")
+  key <- paste(names(p), round(p, 2), sep="=", collapse=", ")
+  power[[key]] <- l
 }
+
+results <- list(
+  "method"=opt$method,
+  "effect"=opt$effect,
+  "alpha_error"=alpha,
+  "power"=power
+)
+j <- jsonlite::toJSON(
+  results,
+  pretty=T,
+  auto_unbox=T
+)
+cat(j, "\n")
