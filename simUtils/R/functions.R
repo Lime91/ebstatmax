@@ -8,16 +8,17 @@
 sanity_check <- function(options,
                          config) {
   if (!(options$scenario %in% config$valid_scenarios))
-    stop("scenario must be in (",
+    stop("Invalid scenario! Must be one of (",
          paste(config$valid_scenarios, collapse=", "), ")")
   
-  if (!(options$effect %in% config$valid_effects))
-    stop("effect must be in ('",
-         paste(config$valid_effects, collapse="', '"), "')")
-  
   if (!(options$method %in% config$valid_methods))
-    stop("method must be in ('",
+    stop("Invalid method! Must be one of ('",
          paste(config$valid_methods, collapse="', '"), "')")
+  
+  if (!is.null(options$effect))
+    if (!(options$effect %in% config$valid_effects))
+      stop("Invalid effect! Must be one of ('",
+           paste(config$valid_effects, collapse="', '"), "')")
 }
 
 
@@ -499,7 +500,7 @@ compute_rejection_rate <- function(data,
     "combined"=rep(NA, r)
   )
   for (i in 1:r) {
-    if ((i - 1) %% 1e3 == 0) cat(i, "/", r, "\n", sep="", file=stderr())
+    if ((i - 1) %% (r/5) == 0) cat(i, "/", r, "\n", sep="", file=stderr())
     original <- data.table::copy(data[, ..target])  # save from passing by ref
     permute(data, target, config$blocklength)
     add_effect(data, params, options, config)
