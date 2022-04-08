@@ -12,6 +12,7 @@ In order to run the script, you need to install `R` (the project was developed w
   - `optparse` (`1.7.1`)
   - `data.table` (`1.12.8`)
   - `nparLD` (`2.1`)
+  - `jsonlite` (`1.7.2`)
   - `devtools`
 
 The version number is, again, the one used to develop this project.

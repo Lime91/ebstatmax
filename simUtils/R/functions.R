@@ -1,4 +1,27 @@
 
+#' Check User Input
+#'
+#' Perform simple sanity checks. Throw error if invalid user input is detected.
+#'
+#' @param options `list` with user-provided command line arguments
+#' @param config `list` that contains valid options to compare with
+sanity_check <- function(options,
+                         config) {
+  if (!(options$scenario %in% config$valid_scenarios))
+    stop("Invalid scenario! Must be one of (",
+         paste(config$valid_scenarios, collapse=", "), ")")
+  
+  if (!(options$method %in% config$valid_methods))
+    stop("Invalid method! Must be one of ('",
+         paste(config$valid_methods, collapse="', '"), "')")
+  
+  if (!is.null(options$effect))
+    if (!(options$effect %in% config$valid_effects))
+      stop("Invalid effect! Must be one of ('",
+           paste(config$valid_effects, collapse="', '"), "')")
+}
+
+
 #' Permute Target Variable Values
 #'
 #' Permutation distributes the target variable randomly across study subjects. 
@@ -17,8 +40,8 @@ permute <- function(data,
                     blocklength) {
   n <- length(data$Id)
   blocks <- n/blocklength
-  matr_perm = matrix(data[[target]], nrow=blocklength, ncol=blocks)
-  matr_perm = matr_perm[, sample(1:blocks)]
+  matr_perm <- matrix(data[[target]], nrow=blocklength, ncol=blocks)
+  matr_perm <- matr_perm[, sample(1:blocks)]
   data[, c(target) := c(matr_perm)]
 }
 
@@ -254,6 +277,10 @@ discard_baseline <- function(data,
 #' the (user-specified) target variable, the respective values will be 
 #' truncated after the effects have been added.
 #' 
+#' The function is also capable of not adding an effect at all (this is needed 
+#' for simulating the type-I error). If this is desired, `NULL` must be handed 
+#' over to the `params` argument.
+#' 
 #' `data` is modified in place.
 #' 
 #' `options$scenario` determines the simulation scenario. If 
@@ -268,16 +295,57 @@ discard_baseline <- function(data,
 #' `add_main_effect` and `add_dependent_effect`.
 #' 
 #' @param data `data.table` with the simulation data
-#' @param params named vector that maps parameter names to parameter values
+#' @param params named vector that maps parameter names to parameter values. 
+#' If alternatively `NULL` is given, the function returns immediately (without 
+#' adding an effect)
 #' @param options `list` with user-defined command line arguments
 #' @param config `list` with further arguments
 add_effect <- function(data,
                        params,
                        options,
                        config) {
+  if (is.null(params)) return()
   effect_vals <- add_main_effect(data, params, options, config)
   add_dependent_effect(data, effect_vals, options, config)
   truncate_target(data, options$target, config$max_values)
+}
+
+
+#' Perform Hypothesis Test
+#'
+#' Execute statistical testing procedure selected by user.
+#'
+#' @param data `data.table` with the simulation data
+#' @param options `list` with user-defined command line arguments
+#' @param config `list` with further arguments
+#' 
+#' `options$method` is the selected statistical testing procedure.
+#' `options$target` contains the name of the target variable in data.
+#' `config$first_period_end` is the last point of time that belongs to the first 
+#' study period.
+#' `config$time_variable` is the name of the variable containing timepoints in 
+#' data.
+#' `config$subject_variable` is the name of the variable that identifies 
+#' subjects in data.
+#' `config$group_variable` is the name of the group variable in data.
+#' `config$alpha` is the type-I error rate.
+#' Moreover, options and config must contain all entries required by 
+#' `discard_baseline`.
+#'
+#' @return a list with keys `period_1`, `period_2`, and `combined`. The  
+#' associated values are `TRUE` if the null hypothesis has been rejected and 
+#' `FALSE` otherwise. Moreover, `NA` is assigned if the test could not be 
+#' performed.
+#' @export
+perform_test <- function(data,
+                         options,
+                         config) {
+  method <- config$functions[[options$method]]
+  args <- method$arguments
+  args[["data"]] <- data
+  args[["options"]] <- options
+  args[["config"]] <- config
+  return(do.call(paste0(method$name), args))
 }
 
 
@@ -299,89 +367,93 @@ add_effect <- function(data,
 #' `discard_baseline`.
 #'
 #' @param data `data.table` with the simulation data
-#' @param period study period (either 1 or 2)
 #' @param options `list` with user-defined command line arguments
 #' @param config `list` with further arguments
 #'
 #' @return the test result (`TRUE` if H0 is rejected, `FALSE` otherwise)
 #' @export
 test_h0 <- function(data,
-                    period,
                     options,
                     config) {
   data <- discard_baseline(data, options, config)  # discard baseline if needed
   query <- data[[config$time_variable]] <= config$first_period_end
-  if (period == 1) {
-    data <- data[query]
-  } else {  # period == 2
-    data <- data[!query]
-  }
+  period1_data <- data[query]
+  period2_data <- data[!query]
   form <- as.formula(paste(
     options$target,
     paste(config$group_variable, config$time_variable, sep=" * "),
     sep=" ~ "))
   capture.output(
-    p_value <- nparLD::nparLD(
+    p_value1 <- nparLD::nparLD(
       form,
-      data,
+      period1_data,
+      subject=config$subject_variable)$ANOVA.test[3,3],
+    p_value2 <- nparLD::nparLD(
+      form,
+      period2_data,
       subject=config$subject_variable)$ANOVA.test[3,3]
   )
-  return(p_value < config$alpha)
-}
-
-
-#' Simulation-based Computation of the Type-I Error
-#' 
-#' For a given number of repetitions, permute the target variable to establish 
-#' a situation in which H0 holds. Perform hypotheses tests for both periods of 
-#' the trial separately. Store all test results and return the average for both 
-#' periods.
-#' 
-#' `options$target` contains the name of the target variable.
-#' `config$repetitions` is the number of repetitions to perform (i.e., the 
-#' number of tests performed for each period)
-#' `config$blocklength` is the number of measurements in a block that refer to 
-#' one subject.
-#' `config$alpha` is the expected type I error rate.
-#' 
-#' Moreover, `options` and `config` must contain all attributes required by 
-#' `test_h0`.
-#'
-#' @param data `data.table` with the simulation data
-#' @param options `list` with user-defined command line arguments
-#' @param config `list` with further arguments
-#'
-#' @return vector with average type-I errors for both periods
-#' @export
-compute_alpha_error <- function(data,
-                                options,
-                                config) {
-  target <- options$target
-  non_binarized <- data.table::copy(data[, ..target])  # save from binarization
-  binarize_target(data, options, config)
-  r <- config$repetitions
-  results1 <- rep(-1, r) 
-  results2 <- rep(-1, r)
-  for (i in 1:r) {
-    original <- data.table::copy(data[, ..target])  # save from passing by ref
-    permute(data, target, config$blocklength)
-    results1[i] <- test_h0(data, 1, options, config)
-    results2[i] <- test_h0(data, 2, options, config)
-    data[, c(target) := original[[target]]]  # restore original
-  }
-  data[, c(target) := non_binarized[[target]]]  # restore after binarization
   l <- list(
-    period_1=list(
-      error=mean(results1, na.rm=TRUE),
-      na_count=sum(is.na(results1))),
-    period_2=list(
-      error=mean(results2, na.rm=TRUE),
-      na_count=sum(is.na(results2))))
+    period_1=(p_value1 < config$alpha),
+    period_2=(p_value2 < config$alpha),
+    combined=NA
+  )
   return(l)
 }
 
 
-#' Simulation-based Computation of Power
+#' Compute Null Hypothesis Rejection Rate
+#'
+#' based on data.frame of test results
+#'
+#' @param results_df `data.frame` with columns of test results (logical vectors)
+#'
+#' @return list of rejection rates with names equal to the input's column names
+rejection_rate <- function(results_df) {
+  v <- apply(
+    results_df,
+    2,
+    function(x) {
+      m <- mean(x, na.rm=TRUE)
+      ifelse(is.nan(m), NA, m)
+    }
+  )
+  return(as.list(v))
+}
+
+
+#' Count Number of Failed Hypothesis Tests
+#' 
+#' based on data.frame of test results that contains `NA` for each failed test
+#'
+#' @param results_df `data.frame` with columns of test results (logical vectors)
+#'
+#' @return list of sums with names equal to the input's column names
+na_count <- function(results_df) {
+  v <- apply(results_df, 2, function(x) sum(is.na(x)))
+  return(as.list(v))
+}
+
+
+#' Summarize Hypothesis Tests
+#' 
+#' compute H0 rejection rate and count number of failed tests based on a 
+#' data.frame of test results that contains `TRUE` for each rejected H0, 
+#' `FALSE` for each non-rejected H0 and `NA` for each failed test.
+#'
+#' @param results_df `data.frame` with columns of test results (logical vectors)
+#'
+#' @return summary list
+summarize_tests <- function(results_df) {
+  l <- list(
+    "rejection_rate"=rejection_rate(results_df),
+    "NA_count"=na_count(results_df)
+  )
+  return(l)
+}
+
+
+#' Simulation-Based Computation of H0 Rejection Rate
 #' 
 #' For a given number of repetitions, firstly permute the target variable and 
 #' secondly, add effects to selected values such that a a situation in which 
@@ -390,8 +462,12 @@ compute_alpha_error <- function(data,
 #' periods.
 #' 
 #' The additive random effect is specified by a combination of user input (the 
-#' attribute `options$effect`) and the `params` argument. Users can also choose 
-#' to binarize the target variable (cf. `binarize_target`).
+#' attribute `options$effect`) and the `params` argument. If `NULL` is assigned 
+#' to the `params` argument, then no random effect will be added. This way, the 
+#' type-I error can be simulated.
+#' 
+#' Moreover, users can choose to binarize the target variable (cf. 
+#' `binarize_target`).
 #' 
 #' `options$target` contains the name of the target variable.
 #' `config$repetitions` is the number of repetitions to perform (i.e., the 
@@ -406,35 +482,31 @@ compute_alpha_error <- function(data,
 #' `add_effect` and `test_h0`.
 #'
 #' @param data `data.table` with the simulation data
-#' @param params named vector that maps parameter names to values
+#' @param params named vector that maps parameter names to values or `NULL`
 #' @param options `list` with user-defined command line arguments
 #' @param config `list` with further arguments
 #'
 #' @return vector with average power values for both periods
 #' @export
-compute_power <- function(data,
-                          params,
-                          options,
-                          config) {
+compute_rejection_rate <- function(data,
+                                   params,
+                                   options,
+                                   config) {
   target <- options$target
   r <- config$repetitions
-  results1 <- rep(-1, r) 
-  results2 <- rep(-1, r)
+  results <- data.frame(
+    "period_1"=rep(NA, r),
+    "period_2"=rep(NA, r),
+    "combined"=rep(NA, r)
+  )
   for (i in 1:r) {
+    if ((i - 1) %% (r/5) == 0) cat(i, "/", r, "\n", sep="", file=stderr())
     original <- data.table::copy(data[, ..target])  # save from passing by ref
     permute(data, target, config$blocklength)
     add_effect(data, params, options, config)
     binarize_target(data, options, config)
-    results1[i] <- test_h0(data, 1, options, config)
-    results2[i] <- test_h0(data, 2, options, config)
+    results[i, ] <- perform_test(data, options, config)
     data[, c(target) := original[[target]]]  # restore original
   }
-  l <- list(
-    period_1=list(
-      power=mean(results1, na.rm=TRUE),
-      na_count=sum(is.na(results1))),
-    period_2=list(
-      power=mean(results2, na.rm=TRUE),
-      na_count=sum(is.na(results2))))
-  return(l)
+  return(summarize_tests(results))
 }

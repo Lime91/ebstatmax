@@ -7,10 +7,6 @@ ALPHA <- 0.05
 BLOCKLENGTH <- 4
 BINARY_THRESHOLD <- 0.6
 
-# valid user input
-VALID_SCENARIOS <- c(1, 2)
-VALID_EFFECTS <- c("pois", "nbinom", "lnorm", "norm")
-
 # effect parameters
 POIS_PARAMETERS <- list(
   c("lambda"=2),
@@ -66,10 +62,27 @@ SUBJECT_VARIABLE <- "Id"
 # period separation time
 FIRST_PERIOD_END <- 7
 
+# statistical testing procedures
+NPARLD = list(
+  "name"="test_h0",
+  "arguments"=list()
+)
+
+FUNCTIONS <- list(
+  "nparLD"=NPARLD
+)
+
+# valid user input
+VALID_SCENARIOS <- c(1, 2)
+VALID_EFFECTS <- names(PARAMETERS)
+VALID_METHODS <- names(FUNCTIONS)
+
+
 # combine parameters in global config object
 CONFIG <- list(
   valid_scenarios       = VALID_SCENARIOS,
   valid_effects         = VALID_EFFECTS,
+  valid_methods         = VALID_METHODS,
   parameters            = PARAMETERS,
   time_variable         = TIME_VARIABLE,
   group_variable        = GROUP_VARIABLE,
@@ -85,5 +98,6 @@ CONFIG <- list(
   binary_threshold      = BINARY_THRESHOLD,
   alpha                 = ALPHA,
   repetitions           = REPETITIONS,
-  seed                  = SEED
+  seed                  = SEED,
+  functions             = FUNCTIONS
 )

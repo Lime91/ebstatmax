@@ -9,7 +9,9 @@ add_effect(data, params, options, config)
 \arguments{
 \item{data}{\code{data.table} with the simulation data}
 
-\item{params}{named vector that maps parameter names to parameter values}
+\item{params}{named vector that maps parameter names to parameter values.
+If alternatively \code{NULL} is given, the function returns immediately (without
+adding an effect)}
 
 \item{options}{\code{list} with user-defined command line arguments}
 
@@ -24,6 +26,10 @@ the (user-specified) target variable, the respective values will be
 truncated after the effects have been added.
 }
 \details{
+The function is also capable of not adding an effect at all (this is needed
+for simulating the type-I error). If this is desired, \code{NULL} must be handed
+over to the \code{params} argument.
+
 \code{data} is modified in place.
 
 \code{options$scenario} determines the simulation scenario. If
