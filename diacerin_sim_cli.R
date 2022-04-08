@@ -64,11 +64,9 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list=option_list),
                   convert_hyphens_to_underscores=TRUE)
-
 simUtils::sanity_check(opt, simUtils::CONFIG)
 simUtils::print_config_to_stderr(opt, simUtils::CONFIG)
 
-set.seed(simUtils::CONFIG$seed)
 data <- simUtils::read_data(opt$dataset, simUtils::CONFIG)
 
 # exclude NAs and print dataset info
@@ -84,20 +82,23 @@ if (diff != 0) {
 simUtils::print_data_info_to_stderr(data, simUtils::CONFIG)
 
 # start simulations
+set.seed(simUtils::CONFIG$seed)
 alpha <- NA
 if (opt$compute_alpha) {
   cat("computing alpha error...\n", file=stderr())
-  alpha <- simUtils::compute_alpha_error(data, opt, simUtils::CONFIG)
+  alpha <- simUtils::compute_rejection_rate(data, NULL, opt, simUtils::CONFIG)
 }
 power <- list()
-cat("computing power...\n\n", file=stderr())
+cat("computing power...\n", file=stderr())
 parameters <- simUtils::CONFIG$parameters[[opt$effect]]
-for (p in parameters) {
-  l <- simUtils::compute_power(data, p, opt, simUtils::CONFIG)
-  key <- paste(names(p), round(p, 2), sep="=", collapse=", ")
-  power[[key]] <- l
+for (params in parameters) {
+  key <- paste(names(params), round(params, 2), sep="=", collapse=", ")
+  cat(key, "\n", sep="", file=stderr())
+  pwr <- simUtils::compute_rejection_rate(data, params, opt, simUtils::CONFIG)
+  power[[key]] <- pwr
 }
 
+# print results to stdout
 results <- list(
   "method"=opt$method,
   "effect"=opt$effect,

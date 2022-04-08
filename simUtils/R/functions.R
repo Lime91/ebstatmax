@@ -276,6 +276,10 @@ discard_baseline <- function(data,
 #' the (user-specified) target variable, the respective values will be 
 #' truncated after the effects have been added.
 #' 
+#' The function is also capable of not adding an effect at all (this is needed 
+#' for simulating the type-I error). If this is desired, `NULL` must be handed 
+#' over to the `params` argument.
+#' 
 #' `data` is modified in place.
 #' 
 #' `options$scenario` determines the simulation scenario. If 
@@ -290,13 +294,16 @@ discard_baseline <- function(data,
 #' `add_main_effect` and `add_dependent_effect`.
 #' 
 #' @param data `data.table` with the simulation data
-#' @param params named vector that maps parameter names to parameter values
+#' @param params named vector that maps parameter names to parameter values. 
+#' If alternatively `NULL` is given, the function returns immediately (without 
+#' adding an effect)
 #' @param options `list` with user-defined command line arguments
 #' @param config `list` with further arguments
 add_effect <- function(data,
                        params,
                        options,
                        config) {
+  if (is.null(params)) return()
   effect_vals <- add_main_effect(data, params, options, config)
   add_dependent_effect(data, effect_vals, options, config)
   truncate_target(data, options$target, config$max_values)
@@ -445,53 +452,7 @@ summarize_tests <- function(results_df) {
 }
 
 
-#' Simulation-based Computation of the Type-I Error
-#' 
-#' For a given number of repetitions, permute the target variable to establish 
-#' a situation in which H0 holds. Perform hypotheses tests for both periods of 
-#' the trial separately. Store all test results and return the average for both 
-#' periods.
-#' 
-#' `options$target` contains the name of the target variable.
-#' `config$repetitions` is the number of repetitions to perform (i.e., the 
-#' number of tests performed for each period)
-#' `config$blocklength` is the number of measurements in a block that refer to 
-#' one subject.
-#' `config$alpha` is the expected type I error rate.
-#' 
-#' Moreover, `options` and `config` must contain all attributes required by 
-#' `test_h0`.
-#'
-#' @param data `data.table` with the simulation data
-#' @param options `list` with user-defined command line arguments
-#' @param config `list` with further arguments
-#'
-#' @return vector with average type-I errors for both periods
-#' @export
-compute_alpha_error <- function(data,
-                                options,
-                                config) {
-  target <- options$target
-  non_binarized <- data.table::copy(data[, ..target])  # save from binarization
-  binarize_target(data, options, config)
-  r <- config$repetitions
-  results <- data.frame(
-    "period_1"=rep(NA, r),
-    "period_2"=rep(NA, r),
-    "combined"=rep(NA, r)
-  )
-  for (i in 1:r) {
-    original <- data.table::copy(data[, ..target])  # save from passing by ref
-    permute(data, target, config$blocklength)
-    results[i, ] <- perform_test(data, options, config)
-    data[, c(target) := original[[target]]]  # restore original
-  }
-  data[, c(target) := non_binarized[[target]]]  # restore after binarization
-  return(summarize_tests(results))
-}
-
-
-#' Simulation-based Computation of Power
+#' Simulation-Based Computation of H0 Rejection Rate
 #' 
 #' For a given number of repetitions, firstly permute the target variable and 
 #' secondly, add effects to selected values such that a a situation in which 
@@ -500,8 +461,12 @@ compute_alpha_error <- function(data,
 #' periods.
 #' 
 #' The additive random effect is specified by a combination of user input (the 
-#' attribute `options$effect`) and the `params` argument. Users can also choose 
-#' to binarize the target variable (cf. `binarize_target`).
+#' attribute `options$effect`) and the `params` argument. If `NULL` is assigned 
+#' to the `params` argument, then no random effect will be added. This way, the 
+#' type-I error can be simulated.
+#' 
+#' Moreover, users can choose to binarize the target variable (cf. 
+#' `binarize_target`).
 #' 
 #' `options$target` contains the name of the target variable.
 #' `config$repetitions` is the number of repetitions to perform (i.e., the 
@@ -516,16 +481,16 @@ compute_alpha_error <- function(data,
 #' `add_effect` and `test_h0`.
 #'
 #' @param data `data.table` with the simulation data
-#' @param params named vector that maps parameter names to values
+#' @param params named vector that maps parameter names to values or `NULL`
 #' @param options `list` with user-defined command line arguments
 #' @param config `list` with further arguments
 #'
 #' @return vector with average power values for both periods
 #' @export
-compute_power <- function(data,
-                          params,
-                          options,
-                          config) {
+compute_rejection_rate <- function(data,
+                                   params,
+                                   options,
+                                   config) {
   target <- options$target
   r <- config$repetitions
   results <- data.frame(
@@ -534,6 +499,7 @@ compute_power <- function(data,
     "combined"=rep(NA, r)
   )
   for (i in 1:r) {
+    if ((i - 1) %% 1e3 == 0) cat(i, "/", r, "\n", sep="", file=stderr())
     original <- data.table::copy(data[, ..target])  # save from passing by ref
     permute(data, target, config$blocklength)
     add_effect(data, params, options, config)
