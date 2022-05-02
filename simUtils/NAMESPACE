@@ -2,11 +2,11 @@
 
 export(compute_rejection_rate)
 export(exclude_na_blocks)
+export(nparld)
 export(perform_test)
 export(print_config_to_stderr)
 export(print_data_info_to_stderr)
 export(read_data)
-export(test_h0)
 
 # manually added exports:
 
