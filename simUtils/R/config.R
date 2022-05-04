@@ -64,7 +64,7 @@ FIRST_PERIOD_END <- 7
 
 # statistical testing procedures
 NPARLD = list(
-  "name"="test_h0",
+  "name"="nparld",
   "arguments"=list()
 )
 

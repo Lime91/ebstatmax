@@ -44,5 +44,5 @@ one subject.
 \code{binarize_target}).
 
 Moreover, \code{options} and \code{config} must contain all attributes required by
-\code{add_effect} and \code{test_h0}.
+\code{add_effect}, \code{binarize_target}, \code{discard_baseline}and \code{perform_test}.
 }
