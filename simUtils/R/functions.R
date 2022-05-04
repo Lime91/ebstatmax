@@ -426,7 +426,7 @@ summarize_tests <- function(results_df) {
 #' `binarize_target`).
 #' 
 #' Moreover, `options` and `config` must contain all attributes required by 
-#' `add_effect`, `binarize_target`, `dicard_baseline`and `perform_test`.
+#' `add_effect`, `binarize_target`, `discard_baseline`and `perform_test`.
 #'
 #' @param data `data.table` with the simulation data
 #' @param params named vector that maps parameter names to values or `NULL`
