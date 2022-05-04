@@ -7,19 +7,18 @@
 #' @param type of the GPC ("univariate", (multivariate) "prioritized", (multivariate) "non-prioritized")
 #' @param repeated vector of (prioritized order of) repeated measures (provided in a column named Time in dataset)
 #' @param matching "matched" or "unmatched" GPC
-#' @param alpha type-I error rate
 #' @param side 1 or 2 for one- or two-sided test
 #' @param best "higher" ("lower") if higher (lower) values are the preferred outcome
 #'
 #' @return the test result (TRUE if H0 is rejected, FALSE otherwise)
-test_h0 <- function(data,
-                    target,
-                    type,
-                    repeated,
-                    matching,
-                    alpha,
-                    side,
-                    best) {
+#' @export
+gpc <- function(data,
+                target,
+                type,
+                repeated,
+                matching,
+                side,
+                best) {
   
   # Define univariate and multivariate scoring functions
   # Univariate score function for pairwise comparisons (here we assume larger 
@@ -262,5 +261,5 @@ test_h0 <- function(data,
       }
     }
   }
-  return(p_value < alpha)
+  return(p_value)
 }

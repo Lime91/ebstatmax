@@ -2,6 +2,7 @@
 
 export(compute_rejection_rate)
 export(exclude_na_blocks)
+export(gpc)
 export(nparld)
 export(perform_test)
 export(print_config_to_stderr)
