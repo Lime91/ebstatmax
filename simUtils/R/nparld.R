@@ -40,9 +40,9 @@ nparld <- function(data,
       subject=config$subject_variable)$ANOVA.test[3,3]
   )
   l <- list(
-    period_1=(p_value1 < config$alpha),
-    period_2=(p_value2 < config$alpha),
-    combined=NA
+    period_1=(p_value1),
+    period_2=(p_value2),
+    combined=NA_real_
   )
   return(l)
 }

@@ -353,19 +353,21 @@ perform_test <- function(data,
 #'
 #' based on data.frame of test results
 #'
-#' @param results_df `data.frame` with columns of test results (logical vectors)
+#' @param results_df `data.frame` with columns of individual test results (p-values)
+#' @param alpha type-I error rate
 #'
 #' @return list of rejection rates with names equal to the input's column names
-rejection_rate <- function(results_df) {
-  v <- apply(
+rejection_rate <- function(results_df,
+                           alpha) {
+  rates <- apply(
     results_df,
     2,
     function(x) {
-      m <- mean(x, na.rm=TRUE)
-      ifelse(is.nan(m), NA, m)
+      m <- mean(x < alpha, na.rm=TRUE)
+      ifelse(is.nan(m), NA_real_, m)
     }
   )
-  return(as.list(v))
+  return(as.list(rates))
 }
 
 
@@ -373,7 +375,7 @@ rejection_rate <- function(results_df) {
 #' 
 #' based on data.frame of test results that contains `NA` for each failed test
 #'
-#' @param results_df `data.frame` with columns of test results (logical vectors)
+#' @param results_df `data.frame` with columns of individual test results (p-values)
 #'
 #' @return list of sums with names equal to the input's column names
 na_count <- function(results_df) {
@@ -385,15 +387,17 @@ na_count <- function(results_df) {
 #' Summarize Hypothesis Tests
 #' 
 #' compute H0 rejection rate and count number of failed tests based on a 
-#' data.frame of test results that contains `TRUE` for each rejected H0, 
-#' `FALSE` for each non-rejected H0 and `NA` for each failed test.
+#' data.frame of test results that contains p-values (or `NA` for a 
+#' failed test).
 #'
-#' @param results_df `data.frame` with columns of test results (logical vectors)
+#' @param results_df `data.frame` with columns of individual test results (p-values)
+#' @param alpha type-I error rate
 #'
 #' @return summary list
-summarize_tests <- function(results_df) {
+summarize_tests <- function(results_df,
+                            alpha) {
   l <- list(
-    "rejection_rate"=rejection_rate(results_df),
+    "rejection_rate"=rejection_rate(results_df, alpha),
     "NA_count"=na_count(results_df)
   )
   return(l)
@@ -441,10 +445,10 @@ compute_rejection_rate <- function(data,
                                    config) {
   target <- options$target
   r <- config$repetitions
-  results <- data.frame(
-    "period_1"=rep(NA, r),
-    "period_2"=rep(NA, r),
-    "combined"=rep(NA, r)
+  p_values <- data.frame(
+    "period_1"=rep(NA_real_, r),
+    "period_2"=rep(NA_real_, r),
+    "combined"=rep(NA_real_, r)
   )
   for (i in 1:r) {
     if ((i - 1) %% (r/5) == 0) cat(i, "/", r, "\n", sep="", file=stderr())
@@ -453,8 +457,8 @@ compute_rejection_rate <- function(data,
     add_effect(data, params, options, config)
     binarize_target(data, options, config)
     testing_data <- discard_baseline(data, options, config)
-    results[i, ] <- perform_test(testing_data, options, config)
+    p_values[i, ] <- perform_test(testing_data, options, config)
     data[, c(target) := original[[target]]]  # restore original
   }
-  return(summarize_tests(results))
+  return(summarize_tests(p_values, config$alpha))
 }
