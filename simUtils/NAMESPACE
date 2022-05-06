@@ -17,3 +17,4 @@ export(CONFIG)
 
 import(data.table)  # in order to access data.table special symbols (such as 
 # ":=", "[]", etc.)
+import(dplyr)

@@ -63,13 +63,72 @@ SUBJECT_VARIABLE <- "Id"
 FIRST_PERIOD_END <- 7
 
 # statistical testing procedures
-NPARLD = list(
+NPARLD <- list(
   "name"="nparld",
   "arguments"=list()
 )
-
+GPC_ARGUMENTS <- list(
+  best="lower",
+  side=2,
+  repeated=7
+)
+UNIVARIATE_MATCHED_GPC <- list(
+  "name"="gpc",
+  "arguments"=c(
+    GPC_ARGUMENTS,
+    list(
+      "type"="univariate",
+      "matching"="matched"
+    )
+  )
+)
+UNIVARIATE_UNMATCHED_GPC <- list(
+  "name"="gpc",
+  "arguments"=c(
+    GPC_ARGUMENTS,
+    list(
+      "type"="univariate",
+      "matching"="unmatched"
+    )
+  )
+)
+PRIORITIZED_MATCHED_GPC <- list(
+  "name"="gpc",
+  "arguments"=c(
+    GPC_ARGUMENTS,
+    list(
+      "type"="prioritized",
+      "matching"="matched"
+    )
+  )
+)
+PRIORITIZED_UNMATCHED_GPC <- list(
+  "name"="gpc",
+  "arguments"=c(
+    GPC_ARGUMENTS,
+    list(
+      "type"="prioritized",
+      "matching"="unmatched"
+    )
+  )
+)
+NON_PRIORITIZED_UNMATCHED_GPC <- list(
+  "name"="gpc",
+  "arguments"=c(
+    GPC_ARGUMENTS,
+    list(
+      "type"="non-prioritized",
+      "matching"="unmatched"
+    )
+  )
+)
 FUNCTIONS <- list(
-  "nparLD"=NPARLD
+  "nparld"=NPARLD,
+  "univariate-matched-gpc"=UNIVARIATE_MATCHED_GPC,
+  "univariate-unmatched-gpc"=UNIVARIATE_UNMATCHED_GPC,
+  "prioritized-matched-gpc"=PRIORITIZED_MATCHED_GPC,
+  "prioritized-unmatched-gpc"=PRIORITIZED_UNMATCHED_GPC,
+  "non-prioritized-unmatched-gpc"=NON_PRIORITIZED_UNMATCHED_GPC
 )
 
 # valid user input

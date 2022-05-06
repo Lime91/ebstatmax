@@ -3,22 +3,24 @@
 #' GPC tests assuming larger values are preferred
 #'
 #' @param data data.table with the simulation data
-#' @param target name of the target variable
 #' @param type of the GPC ("univariate", (multivariate) "prioritized", (multivariate) "non-prioritized")
 #' @param repeated vector of (prioritized order of) repeated measures (provided in a column named Time in dataset)
 #' @param matching "matched" or "unmatched" GPC
 #' @param side 1 or 2 for one- or two-sided test
 #' @param best "higher" ("lower") if higher (lower) values are the preferred outcome
+#' @param options `list` with user-defined command line arguments (among others the target)
+#' @param config `list` with further arguments
 #'
 #' @return the test result (TRUE if H0 is rejected, FALSE otherwise)
 #' @export
 gpc <- function(data,
-                target,
                 type,
                 repeated,
                 matching,
                 side,
-                best) {
+                best,
+                options,
+                config) {
   
   # Define univariate and multivariate scoring functions
   # Univariate score function for pairwise comparisons (here we assume larger 
@@ -61,7 +63,7 @@ gpc <- function(data,
     }
   }
   
-  target <- as.symbol(target)
+  target <- as.symbol(options$target)
   
   if (type == "univariate") {
     
@@ -261,5 +263,10 @@ gpc <- function(data,
       }
     }
   }
-  return(p_value)
+  l <- list(
+    period_1=NA_real_,
+    period_2=NA_real_,
+    combined=p_value
+  )
+  return(l)
 }

@@ -4,16 +4,18 @@
 \alias{summarize_tests}
 \title{Summarize Hypothesis Tests}
 \usage{
-summarize_tests(results_df)
+summarize_tests(results_df, alpha)
 }
 \arguments{
-\item{results_df}{\code{data.frame} with columns of test results (logical vectors)}
+\item{results_df}{\code{data.frame} with columns of individual test results (p-values)}
+
+\item{alpha}{type-I error rate}
 }
 \value{
 summary list
 }
 \description{
 compute H0 rejection rate and count number of failed tests based on a
-data.frame of test results that contains \code{TRUE} for each rejected H0,
-\code{FALSE} for each non-rejected H0 and \code{NA} for each failed test.
+data.frame of test results that contains p-values (or \code{NA} for a
+failed test).
 }

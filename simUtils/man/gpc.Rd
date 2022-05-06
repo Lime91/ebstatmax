@@ -4,12 +4,10 @@
 \alias{gpc}
 \title{Perform Hypothesis Test}
 \usage{
-gpc(data, target, type, repeated, matching, alpha, side, best)
+gpc(data, type, repeated, matching, side, best, options, config)
 }
 \arguments{
 \item{data}{data.table with the simulation data}
-
-\item{target}{name of the target variable}
 
 \item{type}{of the GPC ("univariate", (multivariate) "prioritized", (multivariate) "non-prioritized")}
 
@@ -20,6 +18,10 @@ gpc(data, target, type, repeated, matching, alpha, side, best)
 \item{side}{1 or 2 for one- or two-sided test}
 
 \item{best}{"higher" ("lower") if higher (lower) values are the preferred outcome}
+
+\item{options}{\code{list} with user-defined command line arguments (among others the target)}
+
+\item{config}{\code{list} with further arguments}
 }
 \value{
 the test result (TRUE if H0 is rejected, FALSE otherwise)
