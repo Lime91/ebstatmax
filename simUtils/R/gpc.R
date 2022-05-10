@@ -99,10 +99,13 @@ gpc <- function(data,
         ungroup()
       
       # Perform two-sided and one-sided test
-      # @Johan: what to do if SumT == SumC == 0?
+      if (data_sumf$SumT==0 & data_sumf$SumC==0) {
+          data_sumf$Z=0
+         }
+      else {
       data_sumf$Z <- (data_sumf$SumT - data_sumf$SumC) / 
         sqrt(data_sumf$SumT + data_sumf$SumC)
-      
+      }
       p_greater <- pnorm(as.numeric(data_sumf$Z), lower.tail = F)
       if (side == 1) {
         p_value <- p_greater
@@ -116,9 +119,9 @@ gpc <- function(data,
       
       # define number of subjects in each treatment arm
       Id_v <- as.data.frame(filter(data_sum, Group == "V"))
-      nTest <- length(Id_v[, 2])  # @Johan: why 2nd column? Use nrow() instead?
+      nTest <- nrow(Id_v)  
       Id_p <- as.data.frame(filter(data_sum, Group == "P"))
-      nControl <- length(Id_p[, 2])
+      nControl <- nrow(Id_p)
       nPatients <- nTest + nControl
       
       # perform pairwise comparisons
@@ -158,9 +161,10 @@ gpc <- function(data,
     }
   } else {
     
+    data <- data %>% 
+          arrange(factor(Time, levels = repeated))
+    data$Time <- factor(data$Time, levels=unique(data$Time))
     Outcome <- split(select(data, !!target), data$Time)
-    # @Johan: do we really only need the first entry?
-    # If yes, the repeated parameter doesn't need to be a vector
     db_trt <- filter(data, Time == repeated[1])
     Trt <- ifelse(db_trt$Group == "V", 1, 0)
     nTest <- length(Trt[Trt == 1])
