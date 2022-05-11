@@ -240,13 +240,15 @@ gpc <- function(data,
       else if (type == "prioritized") {
         
     data_m<- data[(duplicated(data[,c("Id","Time")], fromLast = FALSE) | duplicated(data[,c("Id","Time")], fromLast = TRUE)),]
-    Outcome_m <- split(select(data_m, SamplePain,Id), data_m$Time)
-    db_trt <- filter(data, Time == repeated[1])
+    ID_b <- c(rep(unique(data_m$Id), each = 2))
+    Outcome_m <- split(select(data_m, SamplePain), data_m$Time)
+    db_trt <- filter(data_m, Time == repeated[1])
     Trt <- ifelse(db_trt$Group == "V", 1, 0)
     nTest <- length(Trt[Trt == 1])
     nControl <- length(Trt[Trt == 0])
     nPatients <- length(Trt)
     
+
     list_mpD <- numeric()
     listmpD_cumulative <- numeric()
     list_mpV <- numeric()
@@ -255,13 +257,13 @@ gpc <- function(data,
       
       for (i in 1:length(Outcome_m)) {
       Score_V <- ScoreV(unlist(Outcome_m[[i]]), Trt)
-     
+   
           Score_mpV <- Score_V * (1 - abs(Score_mpprev))
-          ID_b <- c(rep(1:(length(Trt) / 2), each = 2))
           Score_mD <- numeric()
           for (j in 1:(length(ID_b) / 2)) {
+            ID <- ID_b[2*j]
             Score_mD[j] <- Score_V[
-              which(ID_b == j & Trt == 1), which(ID_b == j & Trt == 0)]
+              which(ID_b==ID & Trt == 1), which(ID_b==ID & Trt == 0)]
           }
           Score_mpprev <- Score_mpprev + Score_mpV
           
