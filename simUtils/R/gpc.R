@@ -73,7 +73,7 @@ gpc <- function(data,
       ungroup()
     
     if (matching == "matched") {
-      
+      data_sum <- data_sum[(duplicated(data_sum$Id, fromLast = FALSE) | duplicated(data_sum$Id, fromLast = TRUE)),]
       data_sum$Sum <- ifelse(
         data_sum$Group == "P",
         -data_sum$Sum,
@@ -99,10 +99,13 @@ gpc <- function(data,
         ungroup()
       
       # Perform two-sided and one-sided test
-      # @Johan: what to do if SumT == SumC == 0?
+      if (data_sumf$SumT==0 & data_sumf$SumC==0) {
+          data_sumf$Z=0
+         }
+      else {
       data_sumf$Z <- (data_sumf$SumT - data_sumf$SumC) / 
         sqrt(data_sumf$SumT + data_sumf$SumC)
-      
+      }
       p_greater <- pnorm(as.numeric(data_sumf$Z), lower.tail = F)
       if (side == 1) {
         p_value <- p_greater
@@ -116,9 +119,9 @@ gpc <- function(data,
       
       # define number of subjects in each treatment arm
       Id_v <- as.data.frame(filter(data_sum, Group == "V"))
-      nTest <- length(Id_v[, 2])  # @Johan: why 2nd column? Use nrow() instead?
+      nTest <- nrow(Id_v)  
       Id_p <- as.data.frame(filter(data_sum, Group == "P"))
-      nControl <- length(Id_p[, 2])
+      nControl <- nrow(Id_p)
       nPatients <- nTest + nControl
       
       # perform pairwise comparisons
@@ -157,10 +160,13 @@ gpc <- function(data,
       }
     }
   } else {
+    data <- data %>% 
+          arrange(factor(Time, levels = repeated))
+    data$Time <- factor(data$Time, levels=unique(data$Time))
     
+     if (matching == "unmatched") {
+       
     Outcome <- split(select(data, !!target), data$Time)
-    # @Johan: do we really only need the first entry?
-    # If yes, the repeated parameter doesn't need to be a vector
     db_trt <- filter(data, Time == repeated[1])
     Trt <- ifelse(db_trt$Group == "V", 1, 0)
     nTest <- length(Trt[Trt == 1])
@@ -179,18 +185,11 @@ gpc <- function(data,
     listnpV_cumulative <- numeric()
     Score_npprev <- 0
     
-    list_mpD <- numeric()
-    listmpD_cumulative <- numeric()
-    list_mpV <- numeric()
-    listmpV_cumulative <- numeric()
-    Score_mpprev <- 0
-    
+       
     for (i in 1:length(Outcome)) {
       Score_V <- ScoreV(unlist(Outcome[[i]]), Trt)
       
       if (type == "prioritized") {
-        
-        if (matching == "unmatched") {
           
           Score_pV <- Score_V * (1 - abs(Score_prev))
           Score_D <- Score_pV[which(Trt == 1), which(Trt == 0)]
@@ -212,36 +211,7 @@ gpc <- function(data,
           }
         }
         
-        if (matching == "matched") {
-          
-          Score_mpV <- Score_V * (1 - abs(Score_mpprev))
-          ID_b <- c(rep(1:(length(Trt) / 2), each = 2))
-          Score_mD <- numeric()
-          for (j in 1:(length(ID_b) / 2)) {
-            Score_mD[j] <- Score_V[
-              which(ID_b == j & Trt == 1), which(ID_b == j & Trt == 0)]
-          }
-          Score_mpprev <- Score_mpprev + Score_mpV
-          
-          list_mpD[i] <- sum(Score_mD)
-          listmpD_cumulative[i] <- sum(list_mpD[1:i])
-          list_mpV[i] <- sum(abs(Score_mD))
-          listmpV_cumulative[i] <- sum(list_mpV[1:i])
-          
-          mpNB <- listmpD_cumulative[length(Outcome)]
-          mpNB_var <- listmpV_cumulative[length(Outcome)]
-          if (side == 1) {
-            p_value <- pnorm((-mpNB / sqrt(mpNB_var)))
-          } else if (side == 2) {
-            p_value <- 2 * pnorm(-abs(mpNB / sqrt(mpNB_var)))
-          }
-        }
-      } else if (type == "non-prioritized") {
-        
-        if (matching == "matched") {
-          stop("Error: cannot perform matched non-prioritized GPC")
-          
-        } else if (matching == "unmatched") {
+        else if (type == "non-prioritized") {
           
           Score_npD <- Score_V[which(Trt == 1), which(Trt == 0)]
           Score_npprev <- Score_npprev + Score_V
@@ -262,7 +232,59 @@ gpc <- function(data,
         }
       }
     }
-  }
+    else if (matching == "matched") {
+      if (type == "non-prioritized") {
+          stop("Error: cannot perform matched non-prioritized GPC")
+      }
+     
+      else if (type == "prioritized") {
+        
+    data_m<- data[(duplicated(data[,c("Id","Time")], fromLast = FALSE) | duplicated(data[,c("Id","Time")], fromLast = TRUE)),]
+    ID_b <- c(rep(unique(data_m$Id), each = 2))
+    Outcome_m <- split(select(data_m, SamplePain), data_m$Time)
+    db_trt <- filter(data_m, Time == repeated[1])
+    Trt <- ifelse(db_trt$Group == "V", 1, 0)
+    nTest <- length(Trt[Trt == 1])
+    nControl <- length(Trt[Trt == 0])
+    nPatients <- length(Trt)
+    
+
+    list_mpD <- numeric()
+    listmpD_cumulative <- numeric()
+    list_mpV <- numeric()
+    listmpV_cumulative <- numeric()
+    Score_mpprev <- 0
+      
+      for (i in 1:length(Outcome_m)) {
+      Score_V <- ScoreV(unlist(Outcome_m[[i]]), Trt)
+   
+          Score_mpV <- Score_V * (1 - abs(Score_mpprev))
+          Score_mD <- numeric()
+          for (j in 1:(length(ID_b) / 2)) {
+            ID <- ID_b[2*j]
+            Score_mD[j] <- Score_V[
+              which(ID_b==ID & Trt == 1), which(ID_b==ID & Trt == 0)]
+          }
+          Score_mpprev <- Score_mpprev + Score_mpV
+          
+          list_mpD[i] <- sum(Score_mD)
+          listmpD_cumulative[i] <- sum(list_mpD[1:i])
+          list_mpV[i] <- sum(abs(Score_mD))
+          listmpV_cumulative[i] <- sum(list_mpV[1:i])
+          
+          mpNB <- listmpD_cumulative[length(Outcome)]
+          mpNB_var <- listmpV_cumulative[length(Outcome)]
+          if (side == 1) {
+            p_value <- pnorm((-mpNB / sqrt(mpNB_var)))
+          } else if (side == 2) {
+            p_value <- 2 * pnorm(-abs(mpNB / sqrt(mpNB_var)))
+          }
+        }
+      } 
+     }
+    } 
+        
+  
   l <- list(
     period_1=NA_real_,
     period_2=NA_real_,
