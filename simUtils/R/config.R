@@ -62,6 +62,21 @@ SUBJECT_VARIABLE <- "Id"
 # period separation time
 FIRST_PERIOD_END <- 7
 
+# prioritized GPC
+TIME_MAPPING <- list(
+  "0"  = 1,
+  "2"  = 2,
+  "4"  = 3,
+  "7"  = 4,
+  "8"  = 1,
+  "10" = 2,
+  "12" = 3,
+  "15" = 4
+)
+REPEATED_PRIORITY <- c(
+  3, 4, 2, 1
+)
+
 # statistical testing procedures
 NPARLD <- list(
   "name"="nparld",
@@ -158,5 +173,7 @@ CONFIG <- list(
   alpha                 = ALPHA,
   repetitions           = REPETITIONS,
   seed                  = SEED,
-  functions             = FUNCTIONS
+  functions             = FUNCTIONS,
+  time_mapping          = TIME_MAPPING,
+  repeated_priority     = REPEATED_PRIORITY
 )

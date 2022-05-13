@@ -4,17 +4,17 @@ devtools::load_all("simUtils")
 # global configuration
 options <- list(target="Pain")
 config <- list()
-best <- "lower"
-side <- 2  # two sided test
-repeated <- 7  # t7
 
 # load data
 blocklength <- 4
-full_data <- simUtils::read_data("data/Diacerein_study-setup.txt", CONFIG)
-unmatched_data <- simUtils::exclude_na_blocks(full_data, options$target, blocklength)
-double_arm_ids <- unmatched_data %>% count(Id) %>% filter(n == 2*blocklength) %>% pull(Id)
-matched_data <- unmatched_data %>% filter(Id %in% double_arm_ids)
+data <- simUtils::read_data("data/Diacerein_study-setup.txt", CONFIG)
+data <- simUtils::exclude_na_blocks(data, options$target, blocklength)
+data <- simUtils::harmonize_period_times(data, CONFIG)
 
+# input for gpc
+best <- "lower"
+side <- 2  # two sided test
+repeated <- simUtils::CONFIG$repeated_priority
 
 
 ################################################################################
@@ -23,11 +23,11 @@ matched_data <- unmatched_data %>% filter(Id %in% double_arm_ids)
 
 type <- "univariate"
 
-matching <- "unmatched"
-gpc(unmatched_data, type, repeated, matching, side, best, options, config)
+matching <- "unmatched"  # expected: 0.9384
+gpc(data, type, repeated, matching, side, best, options, config)
 
-matching <- "matched"
-gpc(matched_data, type, repeated, matching, side, best, options, config)
+matching <- "matched"  # expected: 0.3173
+gpc(data, type, repeated, matching, side, best, options, config)
 
 
 ################################################################################
@@ -36,11 +36,11 @@ gpc(matched_data, type, repeated, matching, side, best, options, config)
 
 type <- "prioritized"
 
-matching <- "unmatched"
-gpc(unmatched_data, type, repeated, matching, side, best, options, config)
+matching <- "unmatched"  # expected: 0.4723
+gpc(data, type, repeated, matching, side, best, options, config)
 
-matching <- "matched"
-gpc(matched_data, type, repeated, matching, side, best, options, config)  # differs from paper result
+matching <- "matched"  # expected: 1.0000
+gpc(data, type, repeated, matching, side, best, options, config)
 
 
 ################################################################################
@@ -49,6 +49,6 @@ gpc(matched_data, type, repeated, matching, side, best, options, config)  # diff
 
 type <- "non-prioritized"
 
-matching <- "unmatched"
-gpc(unmatched_data, type, repeated, matching, side, best, options, config)  # differs from paper result
+matching <- "unmatched"  # expected: 0.7229
+gpc(data, type, repeated, matching, side, best, options, config)
 

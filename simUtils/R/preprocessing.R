@@ -54,3 +54,21 @@ exclude_na_blocks <- function(data,
   }
   return(data[-select])
 }
+
+
+#' Establish Equally Named Timepoints in Both Trial Periods
+#' 
+#' This is required for the implementation of multivariate prioritized gpc.
+#'
+#' @param data `data.table` with the simulation data
+#' @param config `list` with further arguments
+#'
+#' @return input data with timepoints renamed according to the configuration.
+#' @export
+harmonize_period_times <- function(data,
+                                   config) {
+  time <- data[[config$time_variable]]
+  new_time <- sapply(time, function(t) config$time_mapping[[as.character(t)]])
+  data[[config$time_variable]] <- new_time
+  return(data)
+}
