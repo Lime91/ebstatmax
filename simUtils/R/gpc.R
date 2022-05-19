@@ -62,7 +62,7 @@ gpc <- function(data,
       return(-Score)
     }
   }
-  
+
   target <- as.symbol(options$target)
   
   if (type == "univariate") {
@@ -196,7 +196,7 @@ gpc <- function(data,
           Score_prev <- Score_prev + Score_pV
           list_D[i] <- mean(Score_D)
           listD_cumulative[i] <- sum(list_D[1:i])
-          
+            
           list_V[i] <- sum(rowSums(Score_pV)^2) / 
             (nTest * nControl * nPatients * (nPatients - 1))
           listV_cumulative[i] <- sum(rowSums(Score_prev)^2) / 
@@ -210,7 +210,7 @@ gpc <- function(data,
             p_value <- 2 * pnorm(-abs(pNB / sqrt(pNB_var)))
           }
         }
-        
+      
         else if (type == "non-prioritized") {
           
           Score_npD <- Score_V[which(Trt == 1), which(Trt == 0)]
@@ -232,16 +232,17 @@ gpc <- function(data,
         }
       }
     }
+    
     else if (matching == "matched") {
       if (type == "non-prioritized") {
           stop("Error: cannot perform matched non-prioritized GPC")
       }
      
       else if (type == "prioritized") {
-        
+    
     data_m<- data[(duplicated(data[,c("Id","Time")], fromLast = FALSE) | duplicated(data[,c("Id","Time")], fromLast = TRUE)),]
     ID_b <- c(rep(unique(data_m$Id), each = 2))
-    Outcome_m <- split(select(data_m, SamplePain), data_m$Time)
+    Outcome_m <- split(select(data_m, !!target), data_m$Time)
     db_trt <- filter(data_m, Time == repeated[1])
     Trt <- ifelse(db_trt$Group == "V", 1, 0)
     nTest <- length(Trt[Trt == 1])
@@ -262,7 +263,7 @@ gpc <- function(data,
           Score_mD <- numeric()
           for (j in 1:(length(ID_b) / 2)) {
             ID <- ID_b[2*j]
-            Score_mD[j] <- Score_V[
+            Score_mD[j] <- Score_mpV[
               which(ID_b==ID & Trt == 1), which(ID_b==ID & Trt == 0)]
           }
           Score_mpprev <- Score_mpprev + Score_mpV
@@ -272,8 +273,8 @@ gpc <- function(data,
           list_mpV[i] <- sum(abs(Score_mD))
           listmpV_cumulative[i] <- sum(list_mpV[1:i])
           
-          mpNB <- listmpD_cumulative[length(Outcome)]
-          mpNB_var <- listmpV_cumulative[length(Outcome)]
+          mpNB <- listmpD_cumulative[length(Outcome_m)]
+          mpNB_var <- listmpV_cumulative[length(Outcome_m)]
           if (side == 1) {
             p_value <- pnorm((-mpNB / sqrt(mpNB_var)))
           } else if (side == 2) {
@@ -283,7 +284,7 @@ gpc <- function(data,
       } 
      }
     } 
-        
+       
   
   l <- list(
     period_1=NA_real_,
@@ -292,3 +293,4 @@ gpc <- function(data,
   )
   return(l)
 }
+
