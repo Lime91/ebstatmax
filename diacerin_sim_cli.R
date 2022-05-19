@@ -65,7 +65,6 @@ simUtils::sanity_check(opt, simUtils::CONFIG)
 simUtils::print_config_to_stderr(opt, simUtils::CONFIG)
 
 data <- simUtils::read_data(opt$dataset, simUtils::CONFIG)
-
 # exclude NAs and print dataset info
 reduced_data <- simUtils::exclude_na_blocks(
   data, opt$target, simUtils::CONFIG$blocklength)
@@ -77,6 +76,11 @@ if (diff != 0) {
 } else 
   cat("\n", file=stderr())
 simUtils::print_data_info_to_stderr(data, simUtils::CONFIG)
+
+# gpc requires time ids harmonized over periods
+if (opt$method != "nparld") {
+  data <- simUtils::harmonize_period_times(data, CONFIG)
+}
 
 # start simulations
 set.seed(simUtils::CONFIG$seed)
