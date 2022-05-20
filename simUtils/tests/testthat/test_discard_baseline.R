@@ -24,7 +24,7 @@ config <- list(
 )
 
 
-
+# baseline is discarded if binarize=TRUE
 output_data <- simUtils::discard_baseline(
   input_data,
   cli_options,

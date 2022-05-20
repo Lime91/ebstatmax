@@ -7,7 +7,7 @@
 na_count(results_df)
 }
 \arguments{
-\item{results_df}{\code{data.frame} with columns of test results (logical vectors)}
+\item{results_df}{\code{data.frame} with columns of individual test results (p-values)}
 }
 \value{
 list of sums with names equal to the input's column names

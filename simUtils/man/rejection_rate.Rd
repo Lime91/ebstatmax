@@ -4,10 +4,12 @@
 \alias{rejection_rate}
 \title{Compute Null Hypothesis Rejection Rate}
 \usage{
-rejection_rate(results_df)
+rejection_rate(results_df, alpha)
 }
 \arguments{
-\item{results_df}{\code{data.frame} with columns of test results (logical vectors)}
+\item{results_df}{\code{data.frame} with columns of individual test results (p-values)}
+
+\item{alpha}{type-I error rate}
 }
 \value{
 list of rejection rates with names equal to the input's column names

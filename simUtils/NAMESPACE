@@ -2,6 +2,8 @@
 
 export(compute_rejection_rate)
 export(exclude_na_blocks)
+export(gpc)
+export(harmonize_period_times)
 export(nparld)
 export(perform_test)
 export(print_config_to_stderr)
@@ -14,5 +16,7 @@ export(CONFIG)
 
 # manually added imports:
 
-import(data.table)  # in order to access data.table special symbols (such as 
+import(data.table)  # in order to access data.table special symbols (such as
 # ":=", "[]", etc.)
+import(dplyr, except=c("last", "first", "between"))  # needed by gpc,
+# exceptions to avoid import warnings (conflicts with data.table)
