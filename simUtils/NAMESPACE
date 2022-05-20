@@ -18,5 +18,5 @@ export(CONFIG)
 
 import(data.table)  # in order to access data.table special symbols (such as
 # ":=", "[]", etc.)
-import(dplyr, except=c("last", "first", "between"))  # needed by gpc,
-# exceptions to avoid import warnings (conflicts with data.table)
+import(dplyr, except=c("last", "first", "between", "select"))  # needed by gpc,
+# exceptions to avoid import warnings (conflicts with data.table and MASS)
