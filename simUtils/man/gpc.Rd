@@ -9,17 +9,21 @@ gpc(data, type, repeated, matching, side, best, options, config)
 \arguments{
 \item{data}{data.table with the simulation data}
 
-\item{type}{of the GPC ("univariate", (multivariate) "prioritized", (multivariate) "non-prioritized")}
+\item{type}{of the GPC ("univariate", (multivariate) "prioritized",
+(multivariate) "non-prioritized")}
 
-\item{repeated}{vector of (prioritized order of) repeated measures (provided in a column named Time in dataset)}
+\item{repeated}{vector of (prioritized order of) repeated measures (provided
+in a column named Time in dataset)}
 
 \item{matching}{"matched" or "unmatched" GPC}
 
 \item{side}{1 or 2 for one- or two-sided test}
 
-\item{best}{"higher" ("lower") if higher (lower) values are the preferred outcome}
+\item{best}{"higher" ("lower") if higher (lower) values are the preferred
+outcome}
 
-\item{options}{\code{list} with user-defined command line arguments (among others the target)}
+\item{options}{\code{list} with user-defined command line arguments (among others
+the target)}
 
 \item{config}{\code{list} with further arguments}
 }
