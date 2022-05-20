@@ -73,7 +73,7 @@ generate_effect <- function(effect_type,
   } else {
     stop("invalid effect type")
   }
-  return(round(effect))
+  return(round(effect, 1))
 }
 
 
@@ -160,7 +160,7 @@ add_dependent_effect <- function(data,
     group_variable <- config$group_variable
     w <- which(
       (data[[time_variable]] %in% times) & (data[[group_variable]] == group))
-    dependent_effect <- effect %/% 2
+    dependent_effect <- round(effect/2, 1)
     shifted_values <- data[[options$target]][w] + dependent_effect
     data[w, c(options$target) := shifted_values]
   } else {
