@@ -69,7 +69,8 @@ generate_effect <- function(effect_type,
     effect <- rlnorm(n, meanlog=params["meanlog"], sdlog=params["sdlog"])
   } else if (effect_type == "norm") {
     # avoid negative values
-    effect <- max(rnorm(n, mean=params["mean"], sd=params["sd"]), 0)
+    effect <- rnorm(n, mean=params["mean"], sd=params["sd"])
+    effect <- ifelse(effect < 0, 0.0, effect)
   } else {
     stop("invalid effect type")
   }
@@ -450,9 +451,9 @@ compute_rejection_rate <- function(data,
     "period_2"=rep(NA_real_, r),
     "combined"=rep(NA_real_, r)
   )
+  original <- data.table::copy(data[, ..target])  # save from passing by ref
   for (i in 1:r) {
     if ((i - 1) %% (r/5) == 0) cat(i, "/", r, "\n", sep="", file=stderr())
-    original <- data.table::copy(data[, ..target])  # save from passing by ref
     permute(data, target, config$blocklength)
     add_effect(data, params, options, config)
     binarize_target(data, options, config)
