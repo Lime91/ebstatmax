@@ -14,7 +14,7 @@ nparld(data, options, config)
 \item{config}{\code{list} with further arguments}
 }
 \value{
-the test result (\code{TRUE} if H0 is rejected, \code{FALSE} otherwise)
+\code{list} of p-values for the respective tests
 }
 \description{
 Split the dataset according to the specified period and perform a hypothesis
@@ -22,8 +22,8 @@ test.
 }
 \details{
 \code{options$target} contains the name of the target variable in data.
-\code{config$first_period_end} is the last point of time that belongs to the first
-study period.
+\code{config$first_period_end} is the last point of time that belongs to the
+first study period.
 \code{config$time_variable} is the name of the variable containing timepoints in
 data.
 \code{config$subject_variable} is the name of the variable that identifies
