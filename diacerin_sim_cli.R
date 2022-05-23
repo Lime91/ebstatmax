@@ -56,7 +56,13 @@ option_list <- list(
                           " The binary target is computed w.r.t. the baseline ",
                           "observation. Hence, the baseline itself becomes ",
                           "redundant and will be discarded. The relative ",
-                          "binarization threshold is set in the config file."))
+                          "binarization threshold is set in the config file.")),
+  make_option(c("-u", "--side"),
+              action="store",
+              default=2,
+              help=paste0("Perform either a one-sided (1) or a two-sided (2) ",
+                          " hypothesis test. This parameter is only valid for ",
+                          "the gpc methods. [default %default]"))
 )
 
 opt <- parse_args(OptionParser(option_list=option_list),

@@ -2,9 +2,9 @@
 % Please edit documentation in R/gpc.R
 \name{gpc}
 \alias{gpc}
-\title{Perform Hypothesis Test}
+\title{Perform Hypothesis Test using Generalized Pairwise Comparisons (GPC)}
 \usage{
-gpc(data, type, repeated, matching, side, best, options, config)
+gpc(data, type, repeated, matching, best, options, config)
 }
 \arguments{
 \item{data}{data.table with the simulation data}
@@ -17,8 +17,6 @@ in a column named Time in dataset)}
 
 \item{matching}{"matched" or "unmatched" GPC}
 
-\item{side}{1 or 2 for one- or two-sided test}
-
 \item{best}{"higher" ("lower") if higher (lower) values are the preferred
 outcome}
 
@@ -28,8 +26,8 @@ the target)}
 \item{config}{\code{list} with further arguments}
 }
 \value{
-the test result (TRUE if H0 is rejected, FALSE otherwise)
+\code{list} of p-values for the respective tests
 }
 \description{
-GPC tests assuming larger values are preferred
+Perform Hypothesis Test using Generalized Pairwise Comparisons (GPC)
 }

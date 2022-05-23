@@ -19,6 +19,14 @@ sanity_check <- function(options,
     if (!(options$effect %in% config$valid_effects))
       stop("Invalid effect! Must be one of ('",
            paste(config$valid_effects, collapse="', '"), "')")
+  
+  if (options$side == 1)
+    if (options$method == "nparld")
+      stop("Cannot perform one-sided test with nparLD")
+  
+  if (!(options$side %in% c(1, 2)))
+    stop(paste0("Side parameter must be either 1 (one-sided test) or 2 ",
+                "(two-sided test)"))
 }
 
 
