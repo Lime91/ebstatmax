@@ -3,8 +3,8 @@
 
 # simulation of the Diacerin study for the EBStatMax project
 
-# usage (on linux, ubuntu):   ./diacerin_sim_cli.R --help
-# usage (general):            Rscript diacerin_sim_cli.R --help
+# usage (on linux, ubuntu):   ./diacerein.R --help
+# usage (general):            Rscript diacerein.R --help
 
 
 suppressPackageStartupMessages(require(optparse))
