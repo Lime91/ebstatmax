@@ -1,6 +1,4 @@
-#' Perform Hypothesis Test
-#'
-#' GPC tests assuming larger values are preferred
+#' Perform Hypothesis Test using Generalized Pairwise Comparisons (GPC)
 #'
 #' @param data data.table with the simulation data
 #' @param type of the GPC ("univariate", (multivariate) "prioritized",
@@ -8,20 +6,18 @@
 #' @param repeated vector of (prioritized order of) repeated measures (provided
 #' in a column named Time in dataset)
 #' @param matching "matched" or "unmatched" GPC
-#' @param side 1 or 2 for one- or two-sided test
 #' @param best "higher" ("lower") if higher (lower) values are the preferred
 #' outcome
 #' @param options `list` with user-defined command line arguments (among others
 #' the target)
 #' @param config `list` with further arguments
 #'
-#' @return the test result (TRUE if H0 is rejected, FALSE otherwise)
+#' @return `list` of p-values for the respective tests
 #' @export
 gpc <- function(data,
                 type,
                 repeated,
                 matching,
-                side,
                 best,
                 options,
                 config) {
@@ -68,6 +64,7 @@ gpc <- function(data,
   }
 
   target <- as.symbol(options$target)
+  side <- options$side  # either 1- or 2-sided test
 
   if (type == "univariate") {
     data_sum <- data %>%

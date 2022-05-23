@@ -1,11 +1,12 @@
-
 # global config
-options <- list(target="Pain")
+options <- list(
+    target="Pain",
+    side=2  # two-sided test
+)
 config <- simUtils::CONFIG
 
 # other input for gpc
 best <- "lower"
-side <- 2  # two sided test
 repeated <- config$repeated_priority
 
 # load and prepare study data
@@ -15,7 +16,6 @@ blocklength <- 4
 data <- simUtils::exclude_na_blocks(data, options$target, blocklength)
 data <- simUtils::harmonize_period_times(data, config)
 
-
 ################################################################################
 ### univariate
 ################################################################################
@@ -23,7 +23,7 @@ data <- simUtils::harmonize_period_times(data, config)
 type <- "univariate"
 
 matching <- "unmatched"
-l <- simUtils::gpc(data, type, repeated, matching, side, best, options, config)
+l <- simUtils::gpc(data, type, repeated, matching, best, options, config)
 test_that(
     "univariate unmatched GPC produces correct p-value on study data",
     {
@@ -36,7 +36,7 @@ test_that(
 )
 
 matching <- "matched"
-l <- simUtils::gpc(data, type, repeated, matching, side, best, options, config)
+l <- simUtils::gpc(data, type, repeated, matching, best, options, config)
 test_that(
     "univariate matched GPC produces correct p-value on study data",
     {
@@ -56,7 +56,7 @@ test_that(
 type <- "prioritized"
 
 matching <- "unmatched"
-l <- simUtils::gpc(data, type, repeated, matching, side, best, options, config)
+l <- simUtils::gpc(data, type, repeated, matching, best, options, config)
 test_that(
     "prioritized unmatched GPC produces correct p-value on study data",
     {
@@ -69,7 +69,7 @@ test_that(
 )
 
 matching <- "matched"
-l <- simUtils::gpc(data, type, repeated, matching, side, best, options, config)
+l <- simUtils::gpc(data, type, repeated, matching, best, options, config)
 test_that(
     "prioritized matched GPC produces correct p-value on study data",
     {
@@ -89,7 +89,7 @@ test_that(
 type <- "non-prioritized"
 
 matching <- "unmatched"
-l <- simUtils::gpc(data, type, repeated, matching, side, best, options, config)
+l <- simUtils::gpc(data, type, repeated, matching, best, options, config)
 test_that(
     "non-prioritized unmatched GPC produces correct p-value on study data",
     {

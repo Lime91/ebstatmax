@@ -84,7 +84,6 @@ NPARLD <- list(
 )
 GPC_ARGUMENTS <- list(
   best="lower",
-  side=2,
   repeated=REPEATED_PRIORITY
 )
 UNIVARIATE_MATCHED_GPC <- list(
