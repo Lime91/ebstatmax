@@ -64,17 +64,17 @@ FIRST_PERIOD_END <- 7
 
 # prioritized GPC
 TIME_MAPPING <- list(
-  "0"  = 1,
+  "0"  = 0,
   "2"  = 2,
-  "4"  = 3,
-  "7"  = 4,
-  "8"  = 1,
+  "4"  = 4,
+  "7"  = 7,
+  "8"  = 0,
   "10" = 2,
-  "12" = 3,
-  "15" = 4
+  "12" = 4,
+  "15" = 7
 )
 REPEATED_PRIORITY <- c(
-  3, 4, 2, 1
+  4, 7, 2, 0
 )
 
 # statistical testing procedures

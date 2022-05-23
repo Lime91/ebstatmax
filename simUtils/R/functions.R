@@ -69,7 +69,8 @@ generate_effect <- function(effect_type,
     effect <- rlnorm(n, meanlog=params["meanlog"], sdlog=params["sdlog"])
   } else if (effect_type == "norm") {
     # avoid negative values
-    effect <- max(rnorm(n, mean=params["mean"], sd=params["sd"]), 0)
+    effect <- rnorm(n, mean=params["mean"], sd=params["sd"])
+    effect <- ifelse(effect < 0, 0.0, effect)
   } else {
     stop("invalid effect type")
   }
