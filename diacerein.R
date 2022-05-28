@@ -11,7 +11,9 @@ suppressPackageStartupMessages(require(optparse))
 suppressPackageStartupMessages(require(devtools))
 suppressPackageStartupMessages(require(jsonlite))
 
-suppressMessages(devtools::load_all("simUtils"))  # load self-written utilities
+# load self-written utilities
+if (!suppressPackageStartupMessages(require(simUtils)))
+  suppressMessages(devtools::load_all("simUtils"))
 
 
 # command line option parsing
@@ -25,10 +27,10 @@ option_list <- list(
                           "). [default %default]")),
   make_option(c("-d", "--dataset"),
               action="store",
-              default="./data/Diacerein_study-setup.txt",
               type="character",
               help=paste0("Path to the Diacerin-study dataset file. ",
-                          "[default %default]")),
+                          "If omitted, the original study dataset from the ",
+                          "simUtils package will be used.")),
   make_option(c("-s", "--scenario"),
               action="store",
               default=CONFIG$valid_scenarios[1],
@@ -82,22 +84,30 @@ simUtils::sanity_check(opt, simUtils::CONFIG)
 if (opt$binarize || opt$subtract) opt$discard <- TRUE
 simUtils::print_config_to_stderr(opt, simUtils::CONFIG)
 
-data <- simUtils::read_data(opt$dataset, simUtils::CONFIG)
+# load data
+if (is.null(opt$dataset)) {
+  data("diacerein")
+  dataset <- diacerein
+  rm(diacerein)
+} else {
+  dataset <- simUtils::read_data(opt$dataset, simUtils::CONFIG)
+}
+
 # exclude NAs and print dataset info
 reduced_data <- simUtils::exclude_na_blocks(
-  data, opt$target, simUtils::CONFIG$blocklength)
-diff <- nrow(data) - nrow(reduced_data)
+  dataset, opt$target, simUtils::CONFIG$blocklength)
+diff <- nrow(dataset) - nrow(reduced_data)
 if (diff != 0) {
   cat(diff, "rows have been removed from the dataset due to NA-values.\n\n",
       file=stderr())
-  data <- reduced_data
+  dataset <- reduced_data
 } else 
   cat("\n", file=stderr())
-simUtils::print_data_info_to_stderr(data, simUtils::CONFIG)
+simUtils::print_data_info_to_stderr(dataset, simUtils::CONFIG)
 
 # gpc requires time ids harmonized over periods
 if (opt$method != "nparld") {
-  data <- simUtils::harmonize_period_times(data, CONFIG)
+  dataset <- simUtils::harmonize_period_times(dataset, CONFIG)
 }
 
 # start simulations
@@ -111,11 +121,7 @@ results <- list(
 if (is.null(opt$effect)) {
   cat("computing alpha error...\n", file=stderr())
   results[["alpha_error"]] <- simUtils::compute_rejection_rate(
-    data,
-    NULL,
-    opt,
-    simUtils::CONFIG
-  )
+    dataset, NULL, opt, simUtils::CONFIG)
 } else {
   cat("computing power...\n", file=stderr())
   power <- list()
@@ -123,7 +129,8 @@ if (is.null(opt$effect)) {
   for (params in parameters) {
     key <- paste(names(params), round(params, 2), sep="=", collapse=", ")
     cat(key, "\n", sep="", file=stderr())
-    pwr <- simUtils::compute_rejection_rate(data, params, opt, simUtils::CONFIG)
+    pwr <- simUtils::compute_rejection_rate(
+      dataset, params, opt, simUtils::CONFIG)
     power[[key]] <- pwr
   }
   results[["power"]] <- power

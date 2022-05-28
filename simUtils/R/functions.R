@@ -5,6 +5,8 @@
 #'
 #' @param options `list` with user-provided command line arguments
 #' @param config `list` that contains valid options to compare with
+#' 
+#' @export
 sanity_check <- function(options,
                          config) {
   if (!(options$scenario %in% config$valid_scenarios))
