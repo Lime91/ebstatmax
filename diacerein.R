@@ -110,13 +110,19 @@ if (opt$method != "nparld") {
   dataset <- simUtils::harmonize_period_times(dataset, CONFIG)
 }
 
+# prepare results for stdout
+results <- list(
+  "method"=opt$method,
+  "target"=opt$target,
+  "effect"=ifelse(is.null(opt$effect), "NA", opt$effect),
+  "scenario"=opt$scenario,
+  "side"=opt$side,
+  "binarize"=opt$binarize
+)
+
 # start simulations
 set.seed(simUtils::CONFIG$seed)
 
-results <- list(
-  "method"=opt$method,
-  "effect"=ifelse(is.null(opt$effect), "NA", opt$effect)
-)
 
 if (is.null(opt$effect)) {
   cat("computing alpha error...\n", file=stderr())
