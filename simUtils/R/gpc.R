@@ -87,10 +87,10 @@ gpc <- function(data,
 
       score_positive <- ifelse(data_sum$SumTx > 0, 1, 0)
       score_negative <- ifelse(data_sum$SumTx < 0, 1, 0)
-      if (best == "higher") {
+      if (best == "lower") {
         data_sum$ScoreT <- score_positive
         data_sum$ScoreC <- score_negative
-      } else if (best == "lower") {
+      } else if (best == "higher") {
         data_sum$ScoreT <- score_negative
         data_sum$ScoreC <- score_positive
       }
