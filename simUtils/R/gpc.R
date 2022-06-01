@@ -33,9 +33,9 @@ gpc <- function(data,
     } else {
       Score <- 0
     }
-    if (best == "higher") {
+    if (best == "lower") {
       return(Score)
-    } else if (best == "lower") {
+    } else if (best == "higher") {
       return(-Score)
     }
   }
