@@ -48,6 +48,38 @@ test_that(
     }
 )
 
+# switch to one-sided test
+options$side <- 1
+
+matching <- "unmatched"
+l <- simUtils::gpc(data, type, repeated, matching, best, options, config)
+test_that(
+  "univariate unmatched GPC produces correct p-value on study data",
+  {
+    expect_equal(
+      l$combined,
+      0.5308,
+      tolerance=0.001
+    )
+  }
+)
+
+matching <- "matched"
+l <- simUtils::gpc(data, type, repeated, matching, best, options, config)
+test_that(
+  "univariate matched GPC produces correct p-value on study data",
+  {
+    expect_equal(
+      l$combined,
+      0.1587,
+      tolerance=0.001
+    )
+  }
+)
+
+# switch back to two-sided test
+options$side <- 2
+
 
 ################################################################################
 ### prioritized
