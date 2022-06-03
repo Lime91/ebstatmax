@@ -393,7 +393,7 @@ gpc <- function(data,
           wins = sum(list_mT),
           losses = -sum(list_mC),
           ties = Nm - sum(list_mT) + sum(list_mC),
-          net_beneft = paste0(round(mpNB, 4), " (", round(mpNB_LL, 4), ";", round(mpNB_UL, 4), ")")
+          net_beneft = paste0(round(mpNB/Nm, 4), " (", round(mpNB_LL, 4), ";", round(mpNB_UL, 4), ")")
         )
         rownames(win)[nrow(win)] <- "total"
         if (verbose) print(win)
