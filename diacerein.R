@@ -72,13 +72,14 @@ option_list <- list(
               action="store_true",
               default=FALSE,
               help=paste0("Discard baseline measurement. This option is ",
-                          "implied by '--binarize'. [default %default]"))
+                          "implied by '--binarize' and '--subtract'. ",
+                          "[default %default]"))
 )
 
 opt <- parse_args(OptionParser(option_list=option_list),
                   convert_hyphens_to_underscores=TRUE)
 simUtils::sanity_check(opt, simUtils::CONFIG)
-if (opt$binarize) opt$discard <- TRUE  # binarize implies discarded baseline
+if (opt$binarize || opt$subtract) opt$discard <- TRUE
 simUtils::print_config_to_stderr(opt, simUtils::CONFIG)
 
 data <- simUtils::read_data(opt$dataset, simUtils::CONFIG)

@@ -27,6 +27,10 @@ sanity_check <- function(options,
   if (!(options$side %in% c(1, 2)))
     stop(paste0("Side parameter must be either 1 (one-sided test) or 2 ",
                 "(two-sided test)"))
+  
+  if (options$binarize && options$subtract)
+    stop(paste0("Binarization and subtraction of baseline do not make sense ",
+                "together"))
 }
 
 
@@ -501,6 +505,7 @@ compute_rejection_rate <- function(data,
     permute(data, target, config$blocklength)
     add_effect(data, params, options, config)
     binarize_target(data, options, config)
+    subtract_baseline(data, options, config)
     testing_data <- discard_baseline(data, options, config)
     p_values[i, ] <- perform_test(testing_data, options, config)
     data[, c(target) := original[[target]]]  # restore original
