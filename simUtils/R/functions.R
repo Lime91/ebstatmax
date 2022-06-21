@@ -27,6 +27,10 @@ sanity_check <- function(options,
   if (!(options$side %in% c(1, 2)))
     stop(paste0("Side parameter must be either 1 (one-sided test) or 2 ",
                 "(two-sided test)"))
+  
+  if (options$binarize && options$subtract)
+    stop(paste0("Binarization and subtraction of baseline do not make sense ",
+                "together"))
 }
 
 
@@ -211,7 +215,7 @@ truncate_target <- function(data,
 #' time. Whether a measurement is replaced by 0 or by 1 depends on its 
 #' magnitude relative to the first value in the same block (i.e., relative to 
 #' the baseline measurement). After all target values have been replaced by 
-#' either 0 or 1, the baseline measurement is removed from data. This is 
+#' either 0 or 1, the baseline measurement should be removed from data. This is
 #' because all baseline value would equal 0 (as they cannot decrease relative 
 #' to themselves), and hence, do not contain additional information.
 #' 
@@ -248,6 +252,42 @@ binarize_target <- function(data,
 }
 
 
+#' Subtract Baseline from Observations
+#'
+#' Target variable values are supposed to be divided into blocks of equal size.
+#' Each block combines measurements for one subject at different points of
+#' time. The baseline measurement is the one with the earliest time point.
+#'
+#' `options$target` contains the name of the target variable.
+#' `options$subtract` determines if the baseline observation should be
+#' subtracted from other target observations or not (`TRUE`/`FALSE`).
+#' `config$blocklength` is the number of measurements in a block that belong to
+#' one subject.
+#'
+#' Note that `data` is modified in place.
+#'
+#' @param data `data.table` with the simulation data
+#' @param options `list` with user-defined command line arguments
+#' @param config `list` with further arguments
+subtract_baseline <- function(data,
+                              options,
+                              config) {
+  if (options$subtract) {
+    target <- options$target
+    n <- nrow(data)
+    block_begins <- which(1:n %% config$blocklength == 1)
+    for (b in block_begins) {  # 1, blocklength + 1, 2*blocklength + 1, ...
+      range <- b:(b + config$blocklength - 1)
+      block <- data[range, ..target][[target]]
+      baseline <- block[1]
+      others <- block[2:config$blocklength]
+      new_block <- c(baseline, others - baseline)
+      data[range, c(target) := new_block]
+    }
+  }
+}
+
+
 #' Remove Baseline Measurements
 #'
 #' After all target values have been replaced by either 0 or 1, the baseline 
@@ -255,8 +295,8 @@ binarize_target <- function(data,
 #' equal 0 (as they cannot decrease relative to themselves), and hence, do not 
 #' contain additional information.
 #' 
-#' `options$binarize` determines if the target was be binarized or not (`TRUE`/
-#' `FALSE`).
+#' `options$discard` determines if the baseline target measurement is to be
+#' discarded or not (`TRUE`/`FALSE`).
 #' `config$time_variable` is the name of the variable containing timepoints in 
 #' the dataset.
 #' `config$baseline_time` contains the points in time at which baseline measures 
@@ -269,7 +309,7 @@ binarize_target <- function(data,
 discard_baseline <- function(data,
                              options,
                              config) {
-  if (options$binarize) {
+  if (options$discard) {
     query <- !(data[[config$time_variable]] %in% config$baseline_time)
     data <- data[query]
   }
@@ -465,6 +505,7 @@ compute_rejection_rate <- function(data,
     permute(data, target, config$blocklength)
     add_effect(data, params, options, config)
     binarize_target(data, options, config)
+    subtract_baseline(data, options, config)
     testing_data <- discard_baseline(data, options, config)
     p_values[i, ] <- perform_test(testing_data, options, config)
     data[, c(target) := original[[target]]]  # restore original

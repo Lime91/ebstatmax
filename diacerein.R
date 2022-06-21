@@ -62,12 +62,24 @@ option_list <- list(
               default=2,
               help=paste0("Perform either a one-sided (1) or a two-sided (2) ",
                           " hypothesis test. This parameter is only valid for ",
-                          "the gpc methods. [default %default]"))
+                          "the gpc methods. [default %default]")),
+  make_option(c("-r", "--subtract"),
+              action="store_true",
+              default=FALSE,
+              help=paste0("Subtract baseline measurement from all other ",
+                          "observations. [default %default]")),
+  make_option(c("-i", "--discard"),
+              action="store_true",
+              default=FALSE,
+              help=paste0("Discard baseline measurement. This option is ",
+                          "implied by '--binarize' and '--subtract'. ",
+                          "[default %default]"))
 )
 
 opt <- parse_args(OptionParser(option_list=option_list),
                   convert_hyphens_to_underscores=TRUE)
 simUtils::sanity_check(opt, simUtils::CONFIG)
+if (opt$binarize || opt$subtract) opt$discard <- TRUE
 simUtils::print_config_to_stderr(opt, simUtils::CONFIG)
 
 data <- simUtils::read_data(opt$dataset, simUtils::CONFIG)

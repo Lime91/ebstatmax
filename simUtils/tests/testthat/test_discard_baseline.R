@@ -16,7 +16,7 @@ true_result <- data.table::data.table(
          5, 6, 7)
 )
 cli_options <- list(
-  binarize=TRUE
+  discard=TRUE
 )
 config <- list(
   time_variable="time",
@@ -32,7 +32,7 @@ output_data <- simUtils::discard_baseline(
 )
 
 # function does nothing when users specify binarize=FALSE
-cli_options$binarize=FALSE
+cli_options$discard=FALSE
 address_input <- address(input_data)
 unchanged_output <- simUtils::discard_baseline(
   input_data,
@@ -55,7 +55,7 @@ test_that(
 test_that(
   "discard_baseline does not touch input data if binarize==FALSE",
   {
-    expect_equal(
+    expect_identical(
       address_input,
       address_unchanged_output
     )
