@@ -143,7 +143,6 @@ gpc <- function(data,
         ties = Nm - data_sumf$SumT - data_sumf$SumC,
         net_benefit = paste0(round(data_sumf$NB, 4), " (", data_sumf$LL, ";", data_sumf$UL, ")")
       )
-      if (verbose) print(win)
     } else if (matching == "unmatched") {
 
       # define number of subjects in each treatment arm
@@ -199,7 +198,6 @@ gpc <- function(data,
         ties = npairs - sum(U_Gehan[U_Gehan > 0]) + sum(U_Gehan[U_Gehan < 0]),
         net_benefit = paste0(round(Gehan, 4), " (", round(Gehan_LL, 4), ";", round(Gehan_UL, 4), ")")
       )
-      if (verbose) print(win)
     }
   } else {
     data <- data %>%
@@ -285,7 +283,7 @@ gpc <- function(data,
           wins = list_T,
           losses = -list_C,
           ties = character(length(list_T)),
-          net_benefit = list_D
+          net_benefit = round(list_D, 4)
         )
         win[nrow(win) + 1, ] <- list(
           wins = sum(list_T),
@@ -294,7 +292,6 @@ gpc <- function(data,
           net_beneft = paste0(round(pNB, 4), " (", round(pNB_LL, 4), ";", round(pNB_UL, 4), ")")
         )
         rownames(win)[nrow(win)] <- "total"
-        if (verbose) print(win)
       }
 
       if (type == "non-prioritized") {
@@ -305,7 +302,7 @@ gpc <- function(data,
           wins = list_npT,
           losses = -list_npC,
           ties = npairs - list_npT + list_npC,
-          net_benefit = list_npD
+          net_benefit = round(list_npD, 4)
         )
         win[nrow(win) + 1, ] <- list(
           wins = "",
@@ -314,7 +311,6 @@ gpc <- function(data,
           net_beneft = paste0(round(npNB, 4), " (", round(npNB_LL, 4), ";", round(npNB_UL, 4), ")")
         )
         rownames(win)[nrow(win)] <- "total"
-        if (verbose) print(win)
       }
     } else if (matching == "matched") {
       if (type == "non-prioritized") {
@@ -387,7 +383,7 @@ gpc <- function(data,
           wins = list_mT,
           losses = -list_mC,
           ties = "",
-          partial_net_benefit = list_mpD / Nm
+          net_benefit = round(list_mpD / Nm, 4)
         )
         win[nrow(win) + 1, ] <- list(
           wins = sum(list_mT),
@@ -396,7 +392,6 @@ gpc <- function(data,
           net_beneft = paste0(round(mpNB/Nm, 4), " (", round(mpNB_LL, 4), ";", round(mpNB_UL, 4), ")")
         )
         rownames(win)[nrow(win)] <- "total"
-        if (verbose) print(win)
       }
     }
   }
@@ -406,5 +401,7 @@ gpc <- function(data,
     period_2 = NA_real_,
     combined = p_value
   )
+  if (verbose)
+    l["win"] <- list(win)
   return(l)
 }
