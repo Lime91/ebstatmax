@@ -289,7 +289,7 @@ gpc <- function(data,
           wins = sum(list_T),
           losses = -sum(list_C),
           ties = npairs - sum(list_T) + sum(list_C),
-          net_beneft = paste0(round(pNB, 4), " (", round(pNB_LL, 4), ";", round(pNB_UL, 4), ")")
+          net_benefit = paste0(round(pNB, 4), " (", round(pNB_LL, 4), ";", round(pNB_UL, 4), ")")
         )
         rownames(win)[nrow(win)] <- "total"
       }
@@ -308,7 +308,7 @@ gpc <- function(data,
           wins = "",
           losses = "",
           ties = "",
-          net_beneft = paste0(round(npNB, 4), " (", round(npNB_LL, 4), ";", round(npNB_UL, 4), ")")
+          net_benefit = paste0(round(npNB, 4), " (", round(npNB_LL, 4), ";", round(npNB_UL, 4), ")")
         )
         rownames(win)[nrow(win)] <- "total"
       }
@@ -389,7 +389,7 @@ gpc <- function(data,
           wins = sum(list_mT),
           losses = -sum(list_mC),
           ties = Nm - sum(list_mT) + sum(list_mC),
-          net_beneft = paste0(round(mpNB/Nm, 4), " (", round(mpNB_LL, 4), ";", round(mpNB_UL, 4), ")")
+          net_benefit = paste0(round(mpNB/Nm, 4), " (", round(mpNB_LL, 4), ";", round(mpNB_UL, 4), ")")
         )
         rownames(win)[nrow(win)] <- "total"
       }
