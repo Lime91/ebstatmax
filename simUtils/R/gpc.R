@@ -141,7 +141,8 @@ gpc <- function(data,
         wins = data_sumf$SumT,
         losses = data_sumf$SumC,
         ties = Nm - data_sumf$SumT - data_sumf$SumC,
-        net_benefit = paste0(round(data_sumf$NB, 4), " (", data_sumf$LL, ";", data_sumf$UL, ")")
+        net_benefit = paste0(round(data_sumf$NB, 4), " (", data_sumf$LL, ";", data_sumf$UL, ")"),
+        stringsAsFactors = FALSE
       )
     } else if (matching == "unmatched") {
 
@@ -196,7 +197,8 @@ gpc <- function(data,
         wins = sum(U_Gehan[U_Gehan > 0]),
         losses = -sum(U_Gehan[U_Gehan < 0]),
         ties = npairs - sum(U_Gehan[U_Gehan > 0]) + sum(U_Gehan[U_Gehan < 0]),
-        net_benefit = paste0(round(Gehan, 4), " (", round(Gehan_LL, 4), ";", round(Gehan_UL, 4), ")")
+        net_benefit = paste0(round(Gehan, 4), " (", round(Gehan_LL, 4), ";", round(Gehan_UL, 4), ")"),
+        stringsAsFactors = FALSE
       )
     }
   } else {
@@ -283,7 +285,8 @@ gpc <- function(data,
           wins = list_T,
           losses = -list_C,
           ties = character(length(list_T)),
-          net_benefit = round(list_D, 4)
+          net_benefit = round(list_D, 4),
+          stringsAsFactors = FALSE
         )
         win[nrow(win) + 1, ] <- list(
           wins = sum(list_T),
@@ -302,7 +305,8 @@ gpc <- function(data,
           wins = list_npT,
           losses = -list_npC,
           ties = npairs - list_npT + list_npC,
-          net_benefit = round(list_npD, 4)
+          net_benefit = round(list_npD, 4),
+          stringsAsFactors = FALSE
         )
         win[nrow(win) + 1, ] <- list(
           wins = "",
@@ -383,7 +387,8 @@ gpc <- function(data,
           wins = list_mT,
           losses = -list_mC,
           ties = "",
-          net_benefit = round(list_mpD / Nm, 4)
+          net_benefit = round(list_mpD / Nm, 4),
+          stringsAsFactors = FALSE
         )
         win[nrow(win) + 1, ] <- list(
           wins = sum(list_mT),
