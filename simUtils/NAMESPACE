@@ -9,6 +9,7 @@ export(perform_test)
 export(print_config_to_stderr)
 export(print_data_info_to_stderr)
 export(read_data)
+export(sanity_check)
 
 # manually added exports:
 
