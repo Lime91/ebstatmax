@@ -11,6 +11,8 @@
 #' @param options `list` with user-defined command line arguments (among others
 #' the target)
 #' @param config `list` with further arguments
+#' @param verbose `logical` value indication whether wins/losses/ties and net-
+#' benefit should be printed.
 #'
 #' @return `list` of p-values for the respective tests
 #' @export
@@ -20,7 +22,8 @@ gpc <- function(data,
                 matching,
                 best,
                 options,
-                config) {
+                config,
+                verbose = FALSE) {
 
   # Define univariate and multivariate scoring functions
   # Univariate score function for pairwise comparisons (here we assume larger
@@ -64,7 +67,7 @@ gpc <- function(data,
   }
 
   target <- as.symbol(options$target)
-  side <- options$side  # either 1- or 2-sided test
+  side <- options$side # either 1- or 2-sided test
 
   if (type == "univariate") {
     data_sum <- data %>%
@@ -74,7 +77,7 @@ gpc <- function(data,
 
     if (matching == "matched") {
       data_sum <- data_sum[(duplicated(data_sum$Id, fromLast = FALSE) |
-                            duplicated(data_sum$Id, fromLast = TRUE)), ]
+        duplicated(data_sum$Id, fromLast = TRUE)), ]
       data_sum$Sum <- ifelse(
         data_sum$Group == "P",
         -data_sum$Sum,
@@ -115,6 +118,32 @@ gpc <- function(data,
           as.numeric(data_sumf$Z) > 0, 2 * p_greater, 2 * p_less
         )
       }
+
+      # create win/loss/tie output and net benefit + CI
+      Nm <- nrow(data_sum)
+      SumTp <- data_sumf$SumT / Nm
+      SumCp <- data_sumf$SumC / Nm
+      data_sumf$NB <- SumTp - SumCp
+      # MOVER CI (see paper Matsouaka - AC or Wilson)
+      corTp <- (Nm * SumTp + 0.5 * 1.96**2) / (Nm + 1.96**2)
+      corCp <- (Nm * SumCp + 0.5 * 1.96**2) / (Nm + 1.96**2)
+      rho <- -SumTp * SumCp / sqrt(SumTp * (1 - SumTp) * SumCp * (1 - SumCp))
+      # Agresti-Coull CI (see paper Matsouaka)
+      Tp_L <- corTp - 1.96 * sqrt(corTp * (1 - corTp) / (Nm + 1.96**2))
+      Tp_U <- corTp + 1.96 * sqrt(corTp * (1 - corTp) / (Nm + 1.96**2))
+      Cp_L <- corCp - 1.96 * sqrt(corCp * (1 - corCp) / (Nm + 1.96**2))
+      Cp_U <- corCp + 1.96 * sqrt(corCp * (1 - corCp) / (Nm + 1.96**2))
+      data_sumf$LL <- round(data_sumf$NB - sqrt((SumTp - Tp_L)**2 + (Cp_U - SumCp)**2 - 2 * rho * (SumTp - Tp_L) * (Cp_U - SumCp)), 4)
+      data_sumf$UL <- round(data_sumf$NB + sqrt((Tp_U - SumTp)**2 + (SumCp - Cp_L)**2 - 2 * rho * (Tp_U - SumTp) * (SumCp - Cp_L)), 4)
+
+
+      win <- data.frame(
+        wins = data_sumf$SumT,
+        losses = data_sumf$SumC,
+        ties = Nm - data_sumf$SumT - data_sumf$SumC,
+        net_benefit = paste0(round(data_sumf$NB, 4), " (", data_sumf$LL, ";", data_sumf$UL, ")"),
+        stringsAsFactors = FALSE
+      )
     } else if (matching == "unmatched") {
 
       # define number of subjects in each treatment arm
@@ -158,6 +187,19 @@ gpc <- function(data,
       } else if (side == 2) {
         p_value <- 2 * pnorm(-abs(Gehan / sqrt(Var_Gehan_P)))
       }
+
+      # create win/loss/tie output and net benefit + CI
+      Gehan_UL <- Gehan + 1.96 * sqrt(Var_Gehan_P)
+      Gehan_LL <- Gehan - 1.96 * sqrt(Var_Gehan_P)
+      npairs <- nTest * nControl
+
+      win <- data.frame(
+        wins = sum(U_Gehan[U_Gehan > 0]),
+        losses = -sum(U_Gehan[U_Gehan < 0]),
+        ties = npairs - sum(U_Gehan[U_Gehan > 0]) + sum(U_Gehan[U_Gehan < 0]),
+        net_benefit = paste0(round(Gehan, 4), " (", round(Gehan_LL, 4), ";", round(Gehan_UL, 4), ")"),
+        stringsAsFactors = FALSE
+      )
     }
   } else {
     data <- data %>%
@@ -171,13 +213,18 @@ gpc <- function(data,
       nTest <- length(Trt[Trt == 1])
       nControl <- length(Trt[Trt == 0])
       nPatients <- length(Trt)
+      npairs <- nTest * nControl
 
+      list_T <- numeric()
+      list_C <- numeric()
       list_D <- numeric()
       listD_cumulative <- numeric()
       list_V <- numeric()
       listV_cumulative <- numeric()
       Score_prev <- 0
 
+      list_npT <- numeric()
+      list_npC <- numeric()
       list_npD <- numeric()
       listnpD_cumulative <- numeric()
       list_npV <- numeric()
@@ -192,6 +239,8 @@ gpc <- function(data,
           Score_pV <- Score_V * (1 - abs(Score_prev))
           Score_D <- Score_pV[which(Trt == 1), which(Trt == 0)]
           Score_prev <- Score_prev + Score_pV
+          list_T[i] <- sum(Score_D[Score_D > 0])
+          list_C[i] <- sum(Score_D[Score_D < 0])
           list_D[i] <- mean(Score_D)
           listD_cumulative[i] <- sum(list_D[1:i])
 
@@ -210,6 +259,8 @@ gpc <- function(data,
         } else if (type == "non-prioritized") {
           Score_npD <- Score_V[which(Trt == 1), which(Trt == 0)]
           Score_npprev <- Score_npprev + Score_V
+          list_npT[i] <- sum(Score_npD[Score_npD > 0])
+          list_npC[i] <- sum(Score_npD[Score_npD < 0])
           list_npD[i] <- mean(Score_npD)
           listnpD_cumulative[i] <- sum(list_npD[1:i])
           list_npV[i] <- sum(rowSums(Score_V)^2) /
@@ -226,12 +277,51 @@ gpc <- function(data,
           }
         }
       }
+      # create win/loss/tie output and net benefit + CI
+      if (type == "prioritized") {
+        pNB_LL <- pNB - 1.96 * sqrt(pNB_var)
+        pNB_UL <- pNB + 1.96 * sqrt(pNB_var)
+        win <- data.frame(
+          wins = list_T,
+          losses = -list_C,
+          ties = character(length(list_T)),
+          net_benefit = round(list_D, 4),
+          stringsAsFactors = FALSE
+        )
+        win[nrow(win) + 1, ] <- list(
+          wins = sum(list_T),
+          losses = -sum(list_C),
+          ties = npairs - sum(list_T) + sum(list_C),
+          net_benefit = paste0(round(pNB, 4), " (", round(pNB_LL, 4), ";", round(pNB_UL, 4), ")")
+        )
+        rownames(win)[nrow(win)] <- "total"
+      }
+
+      if (type == "non-prioritized") {
+        # create win/loss/tie output and net benefit + CI
+        npNB_LL <- npNB - 1.96 * sqrt(npNB_var)
+        npNB_UL <- npNB + 1.96 * sqrt(npNB_var)
+        win <- data.frame(
+          wins = list_npT,
+          losses = -list_npC,
+          ties = npairs - list_npT + list_npC,
+          net_benefit = round(list_npD, 4),
+          stringsAsFactors = FALSE
+        )
+        win[nrow(win) + 1, ] <- list(
+          wins = "",
+          losses = "",
+          ties = "",
+          net_benefit = paste0(round(npNB, 4), " (", round(npNB_LL, 4), ";", round(npNB_UL, 4), ")")
+        )
+        rownames(win)[nrow(win)] <- "total"
+      }
     } else if (matching == "matched") {
       if (type == "non-prioritized") {
         stop("Error: cannot perform matched non-prioritized GPC")
       } else if (type == "prioritized") {
         data_m <- data[(duplicated(data[, c("Id", "Time")], fromLast = FALSE) |
-                        duplicated(data[, c("Id", "Time")], fromLast = TRUE)), ]
+          duplicated(data[, c("Id", "Time")], fromLast = TRUE)), ]
         ID_b <- c(rep(unique(data_m$Id), each = 2))
         Outcome_m <- split(dplyr::select(data_m, !!target), data_m$Time)
         db_trt <- filter(data_m, Time == repeated[1])
@@ -240,7 +330,8 @@ gpc <- function(data,
         nControl <- length(Trt[Trt == 0])
         nPatients <- length(Trt)
 
-
+        list_mT <- numeric()
+        list_mC <- numeric()
         list_mpD <- numeric()
         listmpD_cumulative <- numeric()
         list_mpV <- numeric()
@@ -260,6 +351,8 @@ gpc <- function(data,
           }
           Score_mpprev <- Score_mpprev + Score_mpV
 
+          list_mT[i] <- sum(Score_mD[Score_mD > 0])
+          list_mC[i] <- sum(Score_mD[Score_mD < 0])
           list_mpD[i] <- sum(Score_mD)
           listmpD_cumulative[i] <- sum(list_mpD[1:i])
           list_mpV[i] <- sum(abs(Score_mD))
@@ -273,6 +366,37 @@ gpc <- function(data,
             p_value <- 2 * pnorm(-abs(mpNB / sqrt(mpNB_var)))
           }
         }
+
+        # create win/loss/tie output and net benefit + CI
+        Nm <- nTest
+        SumTp <- sum(list_mT) / Nm
+        SumCp <- -sum(list_mC) / Nm
+        # MOVER CI (see paper Matsouaka - AC or Wilson)
+        corTp <- (Nm * SumTp + 0.5 * 1.96**2) / (Nm + 1.96**2)
+        corCp <- (Nm * SumCp + 0.5 * 1.96**2) / (Nm + 1.96**2)
+        rho <- -SumTp * SumCp / sqrt(SumTp * (1 - SumTp) * SumCp * (1 - SumCp))
+        # Agresti-Coull CI (see paper Matsouaka)
+        Tp_L <- corTp - 1.96 * sqrt(corTp * (1 - corTp) / (Nm + 1.96**2))
+        Tp_U <- corTp + 1.96 * sqrt(corTp * (1 - corTp) / (Nm + 1.96**2))
+        Cp_L <- corCp - 1.96 * sqrt(corCp * (1 - corCp) / (Nm + 1.96**2))
+        Cp_U <- corCp + 1.96 * sqrt(corCp * (1 - corCp) / (Nm + 1.96**2))
+        mpNB_LL <- mpNB / Nm - sqrt((SumTp - Tp_L)**2 + (Cp_U - SumCp)**2 - 2 * rho * (SumTp - Tp_L) * (Cp_U - SumCp))
+        mpNB_UL <- mpNB / Nm + sqrt((Tp_U - SumTp)**2 + (SumCp - Cp_L)**2 - 2 * rho * (Tp_U - SumTp) * (SumCp - Cp_L))
+
+        win <- data.frame(
+          wins = list_mT,
+          losses = -list_mC,
+          ties = "",
+          net_benefit = round(list_mpD / Nm, 4),
+          stringsAsFactors = FALSE
+        )
+        win[nrow(win) + 1, ] <- list(
+          wins = sum(list_mT),
+          losses = -sum(list_mC),
+          ties = Nm - sum(list_mT) + sum(list_mC),
+          net_benefit = paste0(round(mpNB/Nm, 4), " (", round(mpNB_LL, 4), ";", round(mpNB_UL, 4), ")")
+        )
+        rownames(win)[nrow(win)] <- "total"
       }
     }
   }
@@ -282,5 +406,7 @@ gpc <- function(data,
     period_2 = NA_real_,
     combined = p_value
   )
+  if (verbose)
+    l["win"] <- list(win)
   return(l)
 }
