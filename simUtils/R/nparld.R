@@ -1,3 +1,7 @@
+# nparLD hypothesis testing
+# Copyright (C) 2022  Konstantin Emil Thiel  <konstantin.thiel@pmu.ac.at>
+
+
 #' Perform Hypothesis Test with nparLD
 #'
 #' Split the dataset according to the specified period and perform a hypothesis 

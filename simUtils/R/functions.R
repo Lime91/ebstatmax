@@ -1,3 +1,6 @@
+# various utility functions
+# Copyright (C) 2022  Konstantin Emil Thiel  <konstantin.thiel@pmu.ac.at>
+
 
 #' Check User Input
 #'
@@ -33,6 +36,9 @@ sanity_check <- function(options,
   if (options$binarize && options$subtract)
     stop(paste0("Binarization and subtraction of baseline do not make sense ",
                 "together"))
+
+  if (options$runs < 1)
+    stop("Number of runs must be a positive integer")
 }
 
 
@@ -472,8 +478,8 @@ summarize_tests <- function(results_df,
 #' `binarize_target`).
 #' 
 #' `options$target` contains the name of the target variable.
-#' `config$repetitions` is the number of repetitions to perform (i.e., the 
-#' number of tests performed for each period)
+#' `options$runs` is the number of repetitions to perform (i.e., the number
+#' of tests performed)
 #' `config$blocklength` is the number of measurements in a block that refer to 
 #' one subject.
 #' `config$alpha` is the expected type I error rate.
@@ -495,7 +501,7 @@ compute_rejection_rate <- function(data,
                                    options,
                                    config) {
   target <- options$target
-  r <- config$repetitions
+  r <- options$runs
   p_values <- data.frame(
     "period_1"=rep(NA_real_, r),
     "period_2"=rep(NA_real_, r),

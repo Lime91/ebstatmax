@@ -23,8 +23,8 @@ equal 0 (as they cannot decrease relative to themselves), and hence, do not
 contain additional information.
 }
 \details{
-\code{options$binarize} determines if the target was be binarized or not (\code{TRUE}/
-\code{FALSE}).
+\code{options$discard} determines if the baseline target measurement is to be
+discarded or not (\code{TRUE}/\code{FALSE}).
 \code{config$time_variable} is the name of the variable containing timepoints in
 the dataset.
 \code{config$baseline_time} contains the points in time at which baseline measures

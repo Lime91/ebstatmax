@@ -3,7 +3,7 @@ Simulation-based computation of power and type-I error of statistical testing pr
 
 ## Contents
 
-The main part of this project is the `diacerein.R` command line tool that provides various options to perform simulations. Its name is an allusion to the clinical trial conducted by [Vally et al. 2018](https://www.sciencedirect.com/science/article/pii/S0190962218301300), in which a drug called *Diacerein* was applied to treat Epidermolysis Bullosa. The filename extension indicates that the tool is an `R`-script. Internally, this script uses various utility functions and global `CONFIG` object from the supplied `simUtils/` package.
+The main part of this project is the `diacerein.R` command line tool that provides various options to perform simulations. Its name is an allusion to the clinical trial conducted by [Vally et al. 2018](https://www.sciencedirect.com/science/article/pii/S0190962218301300), in which a drug called *Diacerein* was applied to treat Epidermolysis Bullosa. The provided tool is purely implemented in `R`. Internally, `diacerein.R` uses various utility functions and global `CONFIG` object from the supplied `simUtils/` package.
 
 The original study data is provided in the `data/` subdirectory. It is used to compute rejection rates of the implemented statistical hypotheses tests. Various command line arguments of `diacerein.R` determine how this data is used and manipulated during simulations.
 
@@ -16,13 +16,25 @@ In order to run the script, you need to install `R` (the project was developed w
   - `dplyr` (`1.0.7`)
   - `nparLD` (`2.1`)
   - `jsonlite` (`1.7.2`)
-  - `devtools`
+  - `devtools` (`2.2.2`)
 
-The version number is, again, the one used to develop this project.
+The version number is the one used to develop this project.
 
 ### Execute
 Perform the following steps:
-  - clone this repo
-  - type `cd ebstatmax`
-  - On Linux, type `./diacerein.R --help`. This requires that you have an `Rscript` executable located in `/usr/bin/`.
-  - On Windows (and on Linux as well), type `Rscript diacerein.R --help`. Make sure the `Rscript` command is detectable via the `PATH` environment variable.
+  - Clone this repo
+  - Type `cd ebstatmax`
+  - On Linux, type `./diacerein.R --help` to familiarize yourself with the available program options. This requires an `Rscript` executable located in `/usr/bin/`. If you're using Windows (or if `Rscript` is located elsewhere), type `Rscript diacerein.R --help`. Make sure the `Rscript` command is detectable via the `PATH` environment variable.
+  - Each program invocation simulates either type-I error or power in a specific scenario. For instance, if you want to simulate the power of `nparLD` when normally-distributed effects are added (at post-treatment time) to the *Pruritus* variable in the placebo group, then invoke the program with arguments `-m nparLD -e norm -t Pruritus`. The strenght of the normally-distributed effects is determined in the config file `simUtils/R/config.R`.
+
+## Support and Copyright
+
+For general questions contact the main developer [Konstantin Emil Thiel](mailto:konstantin.thiel@pmu.ac.at).
+For questions regarding `GPC` and it's implementation contact co-developer [Johan Verbeeck](mailto:johan.verbeeck@uhasselt.be).
+
+
+Copyright (C) 2022  Konstantin Emil Thiel
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. 

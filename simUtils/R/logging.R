@@ -1,3 +1,6 @@
+# Functions to print program details
+# Copyright (C) 2022  Konstantin Emil Thiel  <konstantin.thiel@pmu.ac.at>
+
 
 # used for printing tables
 DUMMY_LINE <- paste(rep("-", 35), collapse="")
@@ -37,7 +40,6 @@ print_config_to_stderr <- function(options,
                                    config) {
   l <- within(options, rm(help))
   l$binary_threshold <- config$binary_threshold
-  l$repetitions <- config$repetitions
   l$alpha <- config$alpha
   l$random_seed <- config$seed
   print_list_to_stderr(l, "PROGRAM CONFIGURATION")
