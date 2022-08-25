@@ -12,7 +12,8 @@ suppressPackageStartupMessages(require(devtools))
 suppressPackageStartupMessages(require(jsonlite))
 
 # load self-written utilities
-if (!suppressPackageStartupMessages(require(simUtils)))
+if (!suppressPackageStartupMessages(
+    suppressWarnings(require(simUtils))))
   suppressMessages(devtools::load_all("simUtils"))
 
 
