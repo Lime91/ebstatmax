@@ -1,3 +1,6 @@
+# various utility functions
+# Copyright (C) 2022  Konstantin Emil Thiel  <konstantin.thiel@pmu.ac.at>
+
 
 #' Check User Input
 #'

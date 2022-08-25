@@ -1,3 +1,6 @@
+# Data preprocessing
+# Copyright (C) 2022  Konstantin Emil Thiel  <konstantin.thiel@pmu.ac.at>
+
 
 #' Read in Diacerin Study Dataset
 #'

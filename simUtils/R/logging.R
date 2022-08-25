@@ -1,3 +1,6 @@
+# Functions to print program details
+# Copyright (C) 2022  Konstantin Emil Thiel  <konstantin.thiel@pmu.ac.at>
+
 
 # used for printing tables
 DUMMY_LINE <- paste(rep("-", 35), collapse="")

@@ -1,3 +1,8 @@
+# GPC hypothesis Testing
+# Copyright (C) 2022  Konstantin Emil Thiel  <konstantin.thiel@pmu.ac.at>
+# Main author: Johan Verbeeck <johan.verbeeck@uhasselt.be>
+
+
 #' Perform Hypothesis Test using Generalized Pairwise Comparisons (GPC)
 #'
 #' @param data data.table with the simulation data
