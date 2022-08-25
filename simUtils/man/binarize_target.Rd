@@ -22,7 +22,7 @@ Each block combines measurements for one subject at different points of
 time. Whether a measurement is replaced by 0 or by 1 depends on its
 magnitude relative to the first value in the same block (i.e., relative to
 the baseline measurement). After all target values have been replaced by
-either 0 or 1, the baseline measurement is removed from data. This is
+either 0 or 1, the baseline measurement should be removed from data. This is
 because all baseline value would equal 0 (as they cannot decrease relative
 to themselves), and hence, do not contain additional information.
 

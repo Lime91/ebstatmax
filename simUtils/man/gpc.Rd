@@ -4,7 +4,7 @@
 \alias{gpc}
 \title{Perform Hypothesis Test using Generalized Pairwise Comparisons (GPC)}
 \usage{
-gpc(data, type, repeated, matching, best, options, config)
+gpc(data, type, repeated, matching, best, options, config, verbose = FALSE)
 }
 \arguments{
 \item{data}{data.table with the simulation data}
@@ -24,6 +24,9 @@ outcome}
 the target)}
 
 \item{config}{\code{list} with further arguments}
+
+\item{verbose}{\code{logical} value indication whether wins/losses/ties and net-
+benefit should be printed.}
 }
 \value{
 \code{list} of p-values for the respective tests

@@ -35,8 +35,8 @@ Moreover, users can choose to binarize the target variable (cf.
 \code{binarize_target}).
 
 \code{options$target} contains the name of the target variable.
-\code{config$repetitions} is the number of repetitions to perform (i.e., the
-number of tests performed for each period)
+\code{options$runs} is the number of repetitions to perform (i.e., the number
+of tests performed)
 \code{config$blocklength} is the number of measurements in a block that refer to
 one subject.
 \code{config$alpha} is the expected type I error rate.
