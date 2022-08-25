@@ -42,6 +42,7 @@ option_list <- list(
   make_option(c("-t", "--target"),
               action="store",
               default="Blister_count",
+              type="character",
               help=paste0("Name of the outcome variable to which effects ",
                           "are applied. [default %default]")),
   make_option(c("-e", "--effect"),
@@ -54,6 +55,7 @@ option_list <- list(
   make_option(c("-b", "--binarize"),
               action="store_true",
               default=FALSE,
+              type="logical",
               help=paste0("Binarize the target variable before testing the H0.",
                           " The binary target is computed w.r.t. the baseline ",
                           "observation. Hence, the baseline itself becomes ",
@@ -62,20 +64,28 @@ option_list <- list(
   make_option(c("-u", "--side"),
               action="store",
               default=2,
+              type="integer",
               help=paste0("Perform either a one-sided (1) or a two-sided (2) ",
                           " hypothesis test. This parameter is only valid for ",
                           "the gpc methods. [default %default]")),
   make_option(c("-r", "--subtract"),
               action="store_true",
               default=FALSE,
+              type="logical",
               help=paste0("Subtract baseline measurement from all other ",
                           "observations. [default %default]")),
   make_option(c("-i", "--discard"),
               action="store_true",
               default=FALSE,
+              type="logical",
               help=paste0("Discard baseline measurement. This option is ",
                           "implied by '--binarize' and '--subtract'. ",
-                          "[default %default]"))
+                          "[default %default]")),
+  make_option(c("-n", "--runs"),
+              action="store",
+              default=CONFIG$repetitions,
+              type="integer",
+              help=paste0("Number of runs. [default %default]"))
 )
 
 opt <- parse_args(OptionParser(option_list=option_list),
@@ -117,7 +127,8 @@ results <- list(
   "effect"=ifelse(is.null(opt$effect), "NA", opt$effect),
   "scenario"=opt$scenario,
   "side"=opt$side,
-  "binarize"=opt$binarize
+  "binarize"=opt$binarize,
+  "runs"=opt$runs
 )
 
 # start simulations

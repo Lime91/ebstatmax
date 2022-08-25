@@ -37,7 +37,6 @@ print_config_to_stderr <- function(options,
                                    config) {
   l <- within(options, rm(help))
   l$binary_threshold <- config$binary_threshold
-  l$repetitions <- config$repetitions
   l$alpha <- config$alpha
   l$random_seed <- config$seed
   print_list_to_stderr(l, "PROGRAM CONFIGURATION")
