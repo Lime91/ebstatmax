@@ -26,3 +26,15 @@ Perform the following steps:
   - Type `cd ebstatmax`
   - On Linux, type `./diacerein.R --help` to familiarize yourself with the available program options. This requires an `Rscript` executable located in `/usr/bin/`. If you're using Windows (or if `Rscript` is located elsewhere), type `Rscript diacerein.R --help`. Make sure the `Rscript` command is detectable via the `PATH` environment variable.
   - Each program invocation simulates either type-I error or power in a specific scenario. For instance, if you want to simulate the power of `nparLD` when normally-distributed effects are added (at post-treatment time) to the *Pruritus* variable in the placebo group, then invoke the program with arguments `-m nparLD -e norm -t Pruritus`. The strenght of the normally-distributed effects is determined in the config file `simUtils/R/config.R`.
+
+## Support and Copyright
+
+For general questions contact the main developer [Konstantin Emil Thiel](mailto:konstantin.thiel@pmu.ac.at).
+For questions regarding `GPC` and it's implementation contact co-developer [Johan Verbeeck](mailto:johan.verbeeck@uhasselt.be).
+
+
+Copyright (C) 2022  Konstantin Emil Thiel
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. 
