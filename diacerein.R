@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript
 
-
 # simulation of the Diacerin study for the EBStatMax project
+# Copyright (C) 2022  Konstantin Emil Thiel  <konstantin.thiel@pmu.ac.at>
 
 # usage (on linux, ubuntu):   ./diacerein.R --help
 # usage (general):            Rscript diacerein.R --help
