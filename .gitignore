@@ -1,7 +1,5 @@
-
 # ignore miscellaneous files
-misc/*
-!misc/.gitkeep
+misc/
 
 # R history
 .Rhistory
