@@ -499,7 +499,8 @@ summarize_tests <- function(results_df,
 compute_rejection_rate <- function(data,
                                    params,
                                    options,
-                                   config) {
+                                   config,
+                                   tables_dir="./") {
   target <- options$target
   r <- options$runs
   p_values <- data.frame(
@@ -515,7 +516,9 @@ compute_rejection_rate <- function(data,
     binarize_target(data, options, config)
     subtract_baseline(data, options, config)
     testing_data <- discard_baseline(data, options, config)
-    p_values[i, ] <- perform_test(testing_data, options, config)
+    # p_values[i, ] <- perform_test(testing_data, options, config)
+    filename <- paste0(tables_dir, i, ".csv")
+    write.table(testing_data, filename, sep=",", row.names=F)
     data[, c(target) := original[[target]]]  # restore original
   }
   return(summarize_tests(p_values, config$alpha))

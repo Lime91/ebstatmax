@@ -147,8 +147,10 @@ if (is.null(opt$effect)) {
   for (params in parameters) {
     key <- paste(names(params), round(params, 2), sep="=", collapse=", ")
     cat(key, "\n", sep="", file=stderr())
+    dirname <- paste0(params, collapse="-")
+    dir.create(dirname)
     pwr <- simUtils::compute_rejection_rate(
-      dataset, params, opt, simUtils::CONFIG)
+      dataset, params, opt, simUtils::CONFIG, paste0(dirname, "/"))
     power[[key]] <- pwr
   }
   results[["power"]] <- power
