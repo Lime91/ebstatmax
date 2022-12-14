@@ -4,7 +4,8 @@
 \name{diacerein}
 \alias{diacerein}
 \title{Original Diacerein Study Data}
-\format{A \code{data.table} with 112 rows and 8 variables:
+\format{
+A \code{data.table} with 112 rows and 8 variables:
 \describe{
 \item{Id}{patient identifier}
 \item{Time}{timepoints (study nurse visits), encoded as integers}
@@ -15,7 +16,8 @@ patient's skin surface}
 \item{Pain}{sensed by the patient, measured on a VAS}
 \item{Completed.years}{some comments}
 \item{Comments}{additional comments}
-}}
+}
+}
 \usage{
 diacerein
 }

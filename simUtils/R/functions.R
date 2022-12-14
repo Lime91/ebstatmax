@@ -71,7 +71,7 @@ permute <- function(data,
 #' The generated effects are supposed to be added to the target variable 
 #' afterwards.
 #' 
-#' The returned vector is rounded to integers.
+#' The returned vector is rounded to one floating point digit.
 #'
 #' @param effect_type name of the effect distribution
 #' @param n size of the returned random sample
@@ -100,8 +100,8 @@ generate_effect <- function(effect_type,
 
 #' Add Independent Random Effect to Target
 #' 
-#' At a specific group and at specific points of time, add random integer 
-#' effects to the target variable.
+#' At a specific group and at specific points of time, add random effects 
+#' to the target variable.
 #' 
 #' `options$effect_type` is the name of the distribution of the added effects. 
 #' The params argument provides additional parameters for this distribution.
@@ -146,15 +146,12 @@ add_main_effect <- function(data,
 #' 
 #' In scenario 2, additionally to the independent effects, there exist also 
 #' dependent effects. This function adds these dependent effects to the target 
-#' variable: At a specific group and at specific points of time, integer 
+#' variable: At a specific group and at specific points of time, random 
 #' effects are added to the target variable. These effects depend on the ones 
-#' provided as argument to this function.
+#' provided as argument to this function. The dependend effect is simply half 
+#' of the given effect.
 #' 
-#' Currently the dependent effect is simply half of the given effect. It is 
-#' ensured that the depended effect consists only of integers by applying 
-#' integer division.
-#' 
-#' `config$dependent_effect_time` is a vector that specifies the points of time 
+#' `config$s2_effect_time` is a vector that specifies the points of time 
 #' at which effects are added.
 #' `config$time_variable` is the name of the column in `data` that contains 
 #' timepoints.
@@ -165,17 +162,15 @@ add_main_effect <- function(data,
 #' Note that `data` will be modified in place.
 #'
 #' @param data `data.table` with the simulation data
-#' @param effect vector with integer effects
+#' @param effect vector with random effects
 #' @param options `list` with user-defined command line arguments
 #' @param config `list` with further arguments
-add_dependent_effect <- function(data,
-                                 effect,
-                                 options,
-                                 config) {
-  if (options$scenario == 1) {
-    return()
-  } else if (options$scenario == 2) {
-    times <- config$dependent_effect_time
+add_s2_effect <- function(data,
+                          effect,
+                          options,
+                          config) {
+  if (options$scenario == 2) {
+    times <- config$s2_effect_time
     group <- config$placebo_group
     time_variable <- config$time_variable
     group_variable <- config$group_variable
@@ -184,32 +179,89 @@ add_dependent_effect <- function(data,
     dependent_effect <- round(effect/2, 1)
     shifted_values <- data[[options$target]][w] + dependent_effect
     data[w, c(options$target) := shifted_values]
-  } else {
-    stop(paste("scenario", scenario, "is invalid!"))
+  }
+}
+
+
+#' Add Depended Effects to Target for Different Timepoints
+#' 
+#' In scenario 3, additionally to the independent effects, there exist also 
+#' dependent effects. This function adds these dependent effects to the target 
+#' variable: At a specific group and at specific points of time, random 
+#' effects are added to the target variable. These effects depend on the ones 
+#' provided as argument to this function. Note that, in contrast to scenario 
+#' 2, the effects added by this function consist of integers only.
+#' 
+#' The dependend effect for the second timepoint is half of the given effect.
+#' The dependend effect for the fourth timepoint is half of the given effect 
+#' plus a rounded standard normally distributed random effect.
+#' 
+#' `config$s3_effect_time_a` is a vector that specifies the points of time 
+#' at which effects are added.
+#' `config$s3_effect_time_b` is a vector that specifies the points of time 
+#' at which effects are added.
+#' `config$time_variable` is the name of the column in `data` that contains 
+#' timepoints.
+#' `config$placebo_group` is the name of the group to which effects are added.
+#' `config$group_variable` is the name of the column in `data` that contains 
+#' groups.
+#' 
+#' Note that `data` will be modified in place.
+#'
+#' @param data `data.table` with the simulation data
+#' @param effect vector with random effects
+#' @param options `list` with user-defined command line arguments
+#' @param config `list` with further arguments
+add_s3_effect <- function(data,
+                          effect,
+                          options,
+                          config) {
+  if (options$scenario == 3) {
+    times_a <- config$s3_effect_time_a
+    times_b <- config$s3_effect_time_b
+    group <- config$placebo_group
+    time_variable <- config$time_variable
+    group_variable <- config$group_variable
+    w_a <- which(
+      (data[[time_variable]] %in% times_a) & (data[[group_variable]] == group)
+    )
+    w_b <- which(
+      (data[[time_variable]] %in% times_b) & (data[[group_variable]] == group)
+    )
+    values_a <- data[[options$target]][w_a] + round(effect/2)
+    values_b <- data[[options$target]][w_b] + round(effect/2) +
+      round(rnorm(length(effect)))
+    data[w_a, c(options$target) := values_a]
+    data[w_b, c(options$target) := values_b]
   }
 }
 
 
 #' Truncate Target Variable
 #'
-#' To ensure that the target variable values do not exceed their scale they can 
-#' be truncated with this function.
+#' To ensure that the target variable values do not exceed their scale they are 
+#' truncated in this function.
 #' 
 #' Truncation is only applied to the variables specified by the names of 
-#' `max_values`.
+#' `config$max_values` or `config$min_values`.
 #' 
 #' Note that `data` is modified in place.
 #' 
 #' @param data `data.table` with the simulation data
-#' @param target name of the target column in data
-#' @param max_values named vector that maps variable names to maximum values
+#' @param target name of the target variable
+#' @param config `list` with further arguments
 truncate_target <- function(data,
                             target,
-                            max_values) {
-  if (target %in% names(max_values)) {
-    m <- max_values[target]
+                            config) {
+  if (target %in% names(config$max_values)) {
+    mx <- config$max_values[target]
     v <- data[[target]]
-    data[, c(target) := ifelse(v <= m, v, m)]
+    data[, c(target) := ifelse(v > mx, mx, v)]
+  }
+  if (target %in% names(config$min_values)) {
+    mn <- config$min_values[target]
+    v <- data[[target]]
+    data[, c(target) := ifelse(v < mn, mn, v)]
   }
 }
 
@@ -349,7 +401,7 @@ discard_baseline <- function(data,
 #' `config$max_values` contains a named vector with maximum values for various 
 #' target variables.
 #' Moreover, `options` and `config` must contain all entries required by 
-#' `add_main_effect` and `add_dependent_effect`.
+#' `add_main_effect`, `add_s2_effect`, and `add_s3_effect`.
 #' 
 #' @param data `data.table` with the simulation data
 #' @param params named vector that maps parameter names to parameter values. 
@@ -363,8 +415,9 @@ add_effect <- function(data,
                        config) {
   if (is.null(params)) return()
   effect_vals <- add_main_effect(data, params, options, config)
-  add_dependent_effect(data, effect_vals, options, config)
-  truncate_target(data, options$target, config$max_values)
+  add_s2_effect(data, effect_vals, options, config)
+  add_s3_effect(data, effect_vals, options, config)
+  truncate_target(data, options$target, config)
 }
 
 

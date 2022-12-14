@@ -4,22 +4,22 @@
 \alias{truncate_target}
 \title{Truncate Target Variable}
 \usage{
-truncate_target(data, target, max_values)
+truncate_target(data, target, config)
 }
 \arguments{
 \item{data}{\code{data.table} with the simulation data}
 
-\item{target}{name of the target column in data}
+\item{target}{name of the target variable}
 
-\item{max_values}{named vector that maps variable names to maximum values}
+\item{config}{\code{list} with further arguments}
 }
 \description{
-To ensure that the target variable values do not exceed their scale they can
-be truncated with this function.
+To ensure that the target variable values do not exceed their scale they are
+truncated in this function.
 }
 \details{
 Truncation is only applied to the variables specified by the names of
-\code{max_values}.
+\code{config$max_values} or \code{config$min_values}.
 
 Note that \code{data} is modified in place.
 }
