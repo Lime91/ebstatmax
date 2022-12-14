@@ -41,5 +41,5 @@ dependent effects are added.
 \code{config$max_values} contains a named vector with maximum values for various
 target variables.
 Moreover, \code{options} and \code{config} must contain all entries required by
-\code{add_main_effect} and \code{add_dependent_effect}.
+\code{add_main_effect}, \code{add_s2_effect}, and \code{add_s3_effect}.
 }

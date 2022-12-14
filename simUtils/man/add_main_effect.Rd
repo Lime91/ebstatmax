@@ -19,8 +19,8 @@ add_main_effect(data, params, options, config)
 vector with the effects that were added to the target variable
 }
 \description{
-At a specific group and at specific points of time, add random integer
-effects to the target variable.
+At a specific group and at specific points of time, add random effects
+to the target variable.
 }
 \details{
 \code{options$effect_type} is the name of the distribution of the added effects.

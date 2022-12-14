@@ -47,10 +47,17 @@ MAX_VALUES <- c(
   "Pruritus"=10,
   "Pain"=10
 )
+MIN_VALUES <- c(
+  "Pruritus"=0,
+  "Pain"=0,
+  "Blister_count"=0
+)
 
 # effect localization
 MAIN_EFFECT_TIME <- c(4, 12)
-DEPENDENT_EFFECT_TIME <- c(7, 15)
+S2_EFFECT_TIME <- c(7, 15)
+S3_EFFECT_TIME_A <- c(2, 10)
+S3_EFFECT_TIME_B <- c(7, 15)
 BASELINE_TIME <- c(0, 8)
 PLACEBO_GROUP <- "P"
 VERUM_GROUP <- "V"
@@ -147,7 +154,7 @@ FUNCTIONS <- list(
 )
 
 # valid user input
-VALID_SCENARIOS <- c(1, 2)
+VALID_SCENARIOS <- c(1, 2, 3)
 VALID_EFFECTS <- names(PARAMETERS)
 VALID_METHODS <- names(FUNCTIONS)
 
@@ -162,12 +169,15 @@ CONFIG <- list(
   group_variable        = GROUP_VARIABLE,
   subject_variable      = SUBJECT_VARIABLE,
   main_effect_time      = MAIN_EFFECT_TIME,
-  dependent_effect_time = DEPENDENT_EFFECT_TIME,
+  s2_effect_time        = S2_EFFECT_TIME,
+  s3_effect_time_a      = S3_EFFECT_TIME_A,
+  s3_effect_time_b      = S3_EFFECT_TIME_B,
   baseline_time         = BASELINE_TIME,
   placebo_group         = PLACEBO_GROUP,
   verum_group           = VERUM_GROUP,
   first_period_end      = FIRST_PERIOD_END,
   max_values            = MAX_VALUES,
+  min_values            = MIN_VALUES,
   blocklength           = BLOCKLENGTH,
   binary_threshold      = BINARY_THRESHOLD,
   alpha                 = ALPHA,

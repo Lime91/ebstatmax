@@ -21,5 +21,5 @@ The generated effects are supposed to be added to the target variable
 afterwards.
 }
 \details{
-The returned vector is rounded to integers.
+The returned vector is rounded to one floating point digit.
 }
