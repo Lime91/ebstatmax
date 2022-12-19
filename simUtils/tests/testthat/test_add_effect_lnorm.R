@@ -1,0 +1,159 @@
+
+# global config
+target <- "Pruritus"
+effect <- "lnorm"
+options <- list(
+  target=target,
+  effect=effect
+)
+config <- simUtils::CONFIG
+parameter <- c("meanlog"=2, "sdlog"=0.1)  # must match options$effect
+seed <- 1
+
+# load and prepare study data
+data("diacerein")  # provided in simUtils package
+data <- diacerein
+data <- simUtils::exclude_na_blocks(data, options$target, config$blocklength)
+data <- simUtils::harmonize_period_times(data, config)
+
+# number of blocks to which the effect is added
+n <- sum(data$Group == config$placebo_group) / config$blocklength
+
+# timepoints
+w_2 <- which(data$Group == "P" & data$Time == 2)  # second timepoint
+w_4 <- which(data$Group == "P" & data$Time == 4)  # third timepoint
+w_7 <- which(data$Group == "P" & data$Time == 7)  # last timepoint
+
+
+
+
+################################################################################
+# scenario 1
+
+# simUtils version
+options$scenario <- 1
+effect_data <- copy(data)
+set.seed(seed)
+simUtils::add_effect(effect_data, parameter, options, config)
+
+# manual version
+x <- data[[target]]
+set.seed(seed)
+r <- round(rlnorm(n, parameter["meanlog"], parameter["sdlog"]), 1)
+x[w_4] <- x[w_4] + r
+x <- ifelse(x > 10, 10, x)
+
+test_that(
+  "add_effect works for scenario 1 with variable 'Pruritus' and lnorm-effects",
+  {
+    expect_identical(
+      effect_data[[options$target]],
+      x
+    )
+  }
+)
+
+
+################################################################################
+# scenario 2
+
+# simUtils version
+options$scenario <- 2
+effect_data <- copy(data)
+set.seed(seed)
+simUtils::add_effect(effect_data, parameter, options, config)
+
+# manual version
+x <- data[[target]]
+set.seed(seed)
+r <- round(rlnorm(n, parameter["meanlog"], parameter["sdlog"]), 1)
+x[w_4] <- x[w_4] + r
+x[w_7] <- x[w_7] + round(r / 2, 1)
+x <- ifelse(x > 10, 10, x)
+
+# check
+test_that(
+  "add_effect works for scenario 2 with variable 'Pruritus' and lnorm-effects",
+  {
+    expect_identical(
+      effect_data[[options$target]],
+      x
+    )
+  }
+)
+
+
+################################################################################
+# scenario 3
+
+# simUtils version
+options$scenario <- 3  # only integer effects in scenario 3
+effect_data <- copy(data)
+set.seed(seed)
+simUtils::add_effect(effect_data, parameter, options, config)
+
+# manual version
+x <- data[[target]]
+set.seed(seed)
+r <- round(rlnorm(n, parameter["meanlog"], parameter["sdlog"]), 1)
+x[w_2] <- x[w_2] + round(r / 2)
+x[w_4] <- x[w_4] + r
+x[w_7] <- x[w_7] + round(r / 2) + round(rnorm(n))
+x <- ifelse(x > 10, 10, x)
+
+# check
+test_that(
+  "add_effect works for scenario 3 with variable 'Pruritus' and lnorm-effects",
+  {
+    expect_identical(
+      effect_data[[options$target]],
+      x
+    )
+  }
+)
+
+
+# reset parameter to obtain negative values
+parameter <- c("meanlog"=0, "sdlog"=0.01)
+seed <- 562988  # yields negative values with rounded rnorm
+
+# sanity check
+set.seed(seed)
+rlnorm(n, parameter["meanlog"], parameter["sdlog"])
+test_that(
+  "rnorm produces highly negatively skewed values for the given random seed",
+  {
+    expect_identical(
+      sum(round(rnorm(n))),
+      -18
+    )
+  }
+)
+
+# simUtils version
+effect_data <- copy(data)
+set.seed(seed)
+simUtils::add_effect(effect_data, parameter, options, config)
+
+# manual version
+x <- data[[target]]
+set.seed(seed)
+r <- round(rlnorm(n, parameter["meanlog"], parameter["sdlog"]), 1)
+x[w_2] <- x[w_2] + round(r / 2)
+x[w_4] <- x[w_4] + r
+x[w_7] <- x[w_7] + round(r / 2) + round(rnorm(n))
+x <- ifelse(x > 10, 10, x)
+x <- ifelse(x < 0, 0, x)
+
+# check
+test_that(
+  "add_effect works for scenario 3 when negative values are introduced",
+  {
+    expect_identical(
+      effect_data[[options$target]],
+      x
+    )
+  }
+)
+
+

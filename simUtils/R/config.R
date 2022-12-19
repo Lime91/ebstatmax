@@ -1,4 +1,4 @@
-# compilation of a global CONFIG object that is used in diacerin_sim_cli.R
+# compilation of a global CONFIG object that is used in diacerein.R
 # Copyright (C) 2022  Konstantin Emil Thiel  <konstantin.thiel@pmu.ac.at>
 
 # general simulation parameters
