@@ -25,7 +25,7 @@ config <- list(
 
 
 # baseline is discarded if binarize=TRUE
-output_data <- simUtils::discard_baseline(
+output_data <- discard_baseline(
   input_data,
   cli_options,
   config
@@ -34,7 +34,7 @@ output_data <- simUtils::discard_baseline(
 # function does nothing when users specify binarize=FALSE
 cli_options$discard=FALSE
 address_input <- address(input_data)
-unchanged_output <- simUtils::discard_baseline(
+unchanged_output <- discard_baseline(
   input_data,
   cli_options,
   config

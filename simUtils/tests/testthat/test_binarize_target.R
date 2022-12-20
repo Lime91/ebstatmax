@@ -24,7 +24,7 @@ init_address_dt <- address(input_data)
 init_address_target <- address(input_data[[cli_options$target]])
 
 # function call
-simUtils::binarize_target(
+binarize_target(
   input_data,
   cli_options,
   config

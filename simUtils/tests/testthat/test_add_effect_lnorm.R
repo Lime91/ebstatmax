@@ -6,15 +6,15 @@ options <- list(
   target=target,
   effect=effect
 )
-config <- simUtils::CONFIG
+config <- CONFIG
 parameter <- c("meanlog"=2, "sdlog"=0.1)  # must match options$effect
 seed <- 1
 
 # load and prepare study data
 data("diacerein")  # provided in simUtils package
 data <- diacerein
-data <- simUtils::exclude_na_blocks(data, options$target, config$blocklength)
-data <- simUtils::harmonize_period_times(data, config)
+data <- exclude_na_blocks(data, options$target, config$blocklength)
+data <- harmonize_period_times(data, config)
 
 # number of blocks to which the effect is added
 n <- sum(data$Group == config$placebo_group) / config$blocklength
@@ -34,7 +34,7 @@ w_7 <- which(data$Group == "P" & data$Time == 7)  # last timepoint
 options$scenario <- 1
 effect_data <- copy(data)
 set.seed(seed)
-simUtils::add_effect(effect_data, parameter, options, config)
+add_effect(effect_data, parameter, options, config)
 
 # manual version
 x <- data[[target]]
@@ -61,7 +61,7 @@ test_that(
 options$scenario <- 2
 effect_data <- copy(data)
 set.seed(seed)
-simUtils::add_effect(effect_data, parameter, options, config)
+add_effect(effect_data, parameter, options, config)
 
 # manual version
 x <- data[[target]]
@@ -90,7 +90,7 @@ test_that(
 options$scenario <- 3  # only integer effects in scenario 3
 effect_data <- copy(data)
 set.seed(seed)
-simUtils::add_effect(effect_data, parameter, options, config)
+add_effect(effect_data, parameter, options, config)
 
 # manual version
 x <- data[[target]]
@@ -133,7 +133,7 @@ test_that(
 # simUtils version
 effect_data <- copy(data)
 set.seed(seed)
-simUtils::add_effect(effect_data, parameter, options, config)
+add_effect(effect_data, parameter, options, config)
 
 # manual version
 x <- data[[target]]
