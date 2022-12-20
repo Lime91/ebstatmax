@@ -26,7 +26,7 @@ init_address_dt <- address(input_data)
 init_address_target <- address(input_data[[cli_options$target]])
 
 # function call
-simUtils::subtract_baseline(
+subtract_baseline(
   input_data,
   cli_options,
   config
@@ -64,7 +64,7 @@ test_that(
 # function does nothing when users specify binarize=FALSE
 cli_options$subtract=FALSE
 deep_copy <- copy(input_data)
-simUtils::subtract_baseline(
+subtract_baseline(
   input_data,
   cli_options,
   config
